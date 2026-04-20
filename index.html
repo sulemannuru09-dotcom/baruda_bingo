@@ -2,61 +2,107 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Baruda Bingo 1-100</title>
     <style>
-        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .title { color: #4ee44e; font-size: 28px; font-weight: bold; margin-bottom: 20px; }
+        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* የቁጥር መምረጫው ሳጥን */
+        /* ቁጥር መምረጫ ገጽ */
+        #selector-page { display: block; }
         .selection-grid { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 10px; 
-            max-width: 450px; 
-            margin: 0 auto; 
-            background: #0c121c; 
-            padding: 15px; 
-            border-radius: 15px; 
-            border: 3px solid #4ee44e;
-            max-height: 500px;
-            overflow-y: auto; /* ወደ ታች ዝቅ አድርገህ እንድታያቸው */
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
+            max-width: 400px; margin: 0 auto; background: #0c121c; 
+            padding: 12px; border-radius: 12px; border: 2px solid #4ee44e;
+            max-height: 450px; overflow-y: auto;
         }
+        .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 3px #c23950; }
 
-        /* የቀይ ቁልፎች መልክ */
-        .num-btn { 
-            background: #e94560; 
-            color: white; 
-            border: none; 
-            padding: 15px 0; 
-            border-radius: 8px; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            box-shadow: 0 4px #c23950;
-            transition: 0.2s;
-        }
+        /* ካርቴላ ማሳያ ገጽ */
+        #card-page { display: none; margin-top: 20px; }
+        .card-header { color: #fee715; font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+        .bingo-table { width: 100%; max-width: 360px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
+        .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
+        .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 4px; }
+        .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
         
-        .num-btn:active {
-            box-shadow: 0 1px #c23950;
-            transform: translateY(3px);
-        }
-
-        p { margin-bottom: 20px; font-size: 18px; }
+        .back-btn { background: #4ee44e; border: none; padding: 12px 35px; border-radius: 6px; color: #161e30; font-weight: bold; margin-top: 25px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="title">Baruda Bingo</div>
-    <p>ካርቴላ ቁጥር ይምረጡ (1-100)</p>
-
-    <div class="selection-grid">
-        <script>
-            for (let i = 1; i <= 100; i++) {
-                document.write(`<button class="num-btn" onclick="alert('የመረጡት ካርቴላ ቁጥር፡ ' + ${i})">${i}</button>`);
-            }
-        </script>
+    <div id="selector-page">
+        <div class="title">Baruda Bingo</div>
+        <p>ካርቴላ ቁጥር ይምረጡ (1-100)</p>
+        <div class="selection-grid" id="grid">
+            </div>
     </div>
 
+    <div id="card-page">
+        <div class="card-header">የእርስዎ ካርቴላ № <span id="card-num-display"></span></div>
+        <table class="bingo-table">
+            <thead>
+                <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
+            </thead>
+            <tbody id="card-content">
+                </tbody>
+        </table>
+        <button class="back-btn" onclick="goBack()">ተመለስ</button>
+    </div>
+
+    <script>
+        // ገጹ ሲከፈት 100 ቁጥሮችን መፍጠር
+        const grid = document.getElementById('grid');
+        for (let i = 1; i <= 100; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'num-btn';
+            btn.innerText = i;
+            btn.onclick = () => showCard(i);
+            grid.appendChild(btn);
+        }
+
+        function showCard(n) {
+            // መምረጫውን ደብቅ፣ ካርቴላውን አሳይ
+            document.getElementById('selector-page').style.display = 'none';
+            document.getElementById('card-page').style.display = 'block';
+            document.getElementById('card-num-display').innerText = n;
+            
+            generateBingoNumbers();
+        }
+
+        function generateBingoNumbers() {
+            const tbody = document.getElementById('card-content');
+            tbody.innerHTML = "";
+            let columns = [];
+            let ranges = [,,,,];
+            
+            for (let i = 0; i < 5; i++) {
+                let pool = [];
+                for (let x = ranges[i]; x <= ranges[i]; x++) pool.push(x);
+                pool.sort(() => Math.random() - 0.5);
+                columns.push(pool.slice(0, 5));
+            }
+
+            for (let r = 0; r < 5; r++) {
+                let row = document.createElement('tr');
+                for (let c = 0; c < 5; c++) {
+                    let cell = document.createElement('td');
+                    if (r === 2 && c === 2) {
+                        cell.innerText = "FREE";
+                        cell.className = "free-slot";
+                    } else {
+                        cell.innerText = columns[c][r];
+                    }
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+            }
+        }
+
+        function goBack() {
+            document.getElementById('card-page').style.display = 'none';
+            document.getElementById('selector-page').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
