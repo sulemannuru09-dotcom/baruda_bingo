@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Pro</title>
+    <title>Baruda Bingo Fixed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; }
@@ -18,7 +18,7 @@
         .hidden { display: none !important; }
         .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
         .btn-select { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; }
-        #timer-display { font-size: 20px; color: #f1c40f; margin: 10px; font-weight: bold; }
+        #timer-display { font-size: 22px; color: #f1c40f; margin: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -48,9 +48,10 @@
         const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
         const g = document.getElementById('grid');
         
+        // ምርጫ ስክሪን
         for(let i=1; i<=25; i++) {
             let b = document.createElement('button'); b.className='btn-select'; b.innerText=i;
-            b.onclick = () => {
+            b.onclick = function() {
                 document.getElementById('scr1').classList.add('hidden');
                 document.getElementById('scr2').classList.remove('hidden');
                 startBingoProcess();
@@ -61,9 +62,8 @@
         function startBingoProcess() {
             const body = document.getElementById('card-body');
             body.innerHTML = "";
-            let ranges = [,,,,];
             
-            // ካርቴላውን በትክክል መሳል
+            // ቁጥሮችን መፍጠር (NaN እንዳይመጣ ተስተካክሏል)
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr');
                 for(let c=0; c<5; c++) {
@@ -71,19 +71,21 @@
                     if(r===2 && c===2) {
                         td.innerText = "FREE"; td.className = "marked";
                     } else {
-                        let min = ranges[c];
-                        let max = ranges[c];
-                        let v = Math.floor(Math.random() * (max - min + 1)) + min;
-                        td.innerText = v; td.id = "cell-" + v;
+                        let min = (c * 15) + 1;
+                        let max = (c + 1) * 15;
+                        let val = Math.floor(Math.random() * (max - min + 1)) + min;
+                        td.innerText = val; 
+                        td.id = "cell-" + val;
                     }
                     tr.appendChild(td);
-                } body.appendChild(tr);
+                }
+                body.appendChild(tr);
             }
 
             // የ 30 ሴኮንድ ቆጠራ
             let seconds = 30;
             const tEl = document.getElementById('timer-display');
-            const countdown = setInterval(() => {
+            const countdown = setInterval(function() {
                 tEl.innerText = "ጨዋታው ለመጀመር " + seconds + " ሴኮንድ ይቀራል";
                 seconds--;
                 if(seconds < 0) {
@@ -98,11 +100,12 @@
         function callNextNumber() {
             if(called.length >= 75) return;
             let n; 
-            do { n = Math.floor(Math.random() * 75) + 1; } while(called.includes(n));
+            do { n = Math.floor(Math.random() * 75) + 1; } while(called.indexOf(n) !== -1);
             called.push(n);
 
             let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
             document.getElementById('big-n').innerText = L + "-" + n;
+            document.getElementById('stat-text').innerText = L + " " + n + " ተጠርቷል!";
             
             let cell = document.getElementById("cell-" + n);
             if(cell) cell.classList.add('marked');
