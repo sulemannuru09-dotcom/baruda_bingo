@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo - Final Fixed</title>
+    <title>Baruda Bingo - No Voice Fixed</title>
     <style>
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
@@ -65,9 +65,10 @@
     </div>
 
     <script>
-        let myCardData = [];
+        let myCardData = [[],[],[],[],[]];
         let gameRunning = false;
-        let callerInterval;
+        let balls = [];
+        let callIndex = 0;
 
         const grid = document.getElementById('grid');
         for (let i = 1; i <= 200; i++) {
@@ -91,20 +92,22 @@
                 timerDisplay.innerText = timeLeft;
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    showGameCard();
+                    goToGame();
                 }
             }, 1000);
         }
 
-        function showGameCard() {
+        function goToGame() {
+            // ገጾቹን ቀይር
             document.getElementById('timer-page').style.display = 'none';
             document.getElementById('card-page').style.display = 'block';
             
+            // ካርቴላውን አዘጋጅ
             const tbody = document.getElementById('card-content');
             tbody.innerHTML = "";
             myCardData = [[],[],[],[],[]];
-            
             let ranges = [,,,,];
+            
             for(let i=0; i<5; i++) {
                 while(myCardData[i].length < 5) {
                     let r = Math.floor(Math.random() * (ranges[i] - ranges[i] + 1)) + ranges[i];
@@ -127,36 +130,38 @@
                 }
                 tbody.appendChild(tr);
             }
-            startCallingProcess();
+            
+            startCalling();
         }
 
-        function startCallingProcess() {
+        function startCalling() {
             gameRunning = true;
-            let balls = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            let index = 0;
+            balls = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            callIndex = 0;
 
-            callerInterval = setInterval(() => {
-                if(index >= 75 || !gameRunning) { clearInterval(callerInterval); return; }
-                
-                let num = balls[index];
+            const callerLoop = () => {
+                if(!gameRunning || callIndex >= 75) return;
+
+                let num = balls[callIndex];
                 let letter = num<=15?'B':num<=30?'I':num<=45?'N':num<=60?'G':'O';
+                
+                // ቁጥሩን በስክሪን ላይ ብቻ አሳይ
                 document.getElementById('ball-display').innerText = `${letter}-${num}`;
 
-                // ድምፅ
-                const utter = new SpeechSynthesisUtterance(`${letter} ${num}`);
-                utter.lang = 'en-US';
-                window.speechSynthesis.speak(utter);
-
-                // Auto Mark
+                // በካርቴላህ ላይ ካለ ምልክት አድርግ
                 for(let c=0; c<5; c++) {
                     for(let r=0; r<5; r++) {
                         if(myCardData[c][r] === num) {
-                            document.getElementById(`cell-${c}-${r}`).classList.add('marked');
+                            let cell = document.getElementById(`cell-${c}-${r}`);
+                            if(cell) cell.classList.add('marked');
                         }
                     }
                 }
-                index++;
-            }, 5000);
+
+                callIndex++;
+                setTimeout(callerLoop, 4000); // በየ 4 ሰከንዱ
+            };
+            callerLoop();
         }
     </script>
 </body>
