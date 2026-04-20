@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Final</title>
+    <title>Baruda Bingo Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; }
         .header-info { display: flex; justify-content: space-around; background: #0b132b; padding: 10px 0; font-size: 12px; border-bottom: 1px solid #3a506b; }
         .header-info b { font-size: 16px; color: #ffffff; }
         .circle-container { margin: 15px auto; width: 110px; height: 110px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); }
-        .called-num { font-size: 40px; font-weight: bold; color: #4ee44e; }
+        .called-num { font-size: 36px; font-weight: bold; color: #4ee44e; }
         .bingo-table { width: 95%; max-width: 380px; margin: 5px auto; border-collapse: separate; border-spacing: 3px; }
-        .bingo-table th { background: #e94560; color: white; padding: 12px 0; border-radius: 4px; font-size: 18px; }
-        .bingo-table td { background: #ffffff; color: #000000; height: 50px; border-radius: 4px; font-size: 22px; font-weight: bold; width: 20%; }
+        .bingo-table th { background: #e94560; color: white; padding: 12px 0; border-radius: 4px; font-size: 18px; width: 20%; }
+        .bingo-table td { background: #ffffff; color: #000000; height: 50px; border-radius: 4px; font-size: 22px; font-weight: bold; }
         .marked { background: #4ee44e !important; color: white !important; }
         .hidden { display: none !important; }
         .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
         .btn-select { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; }
-        #timer-text { font-size: 24px; color: #f1c40f; font-weight: bold; margin: 10px; }
+        #timer-display { font-size: 20px; color: #f1c40f; margin: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -36,8 +36,8 @@
             <div>Derash <b>3200</b></div>
         </div>
         <div class="circle-container"><div class="called-num" id="big-n">-</div></div>
-        <div id="timer-text"></div>
-        <p id="stat-text" style="font-weight:bold; color:#4ee44e;">በመዘጋጀት ላይ...</p>
+        <div id="timer-display"></div>
+        <p id="stat-text" style="font-weight:bold; color:#4ee44e;">የእርስዎ ካርቴላ</p>
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
             <tbody id="card-body"></tbody>
@@ -48,59 +48,64 @@
         const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
         const g = document.getElementById('grid');
         
-        for(let i=1; i<=100; i++) {
+        for(let i=1; i<=25; i++) {
             let b = document.createElement('button'); b.className='btn-select'; b.innerText=i;
             b.onclick = () => {
                 document.getElementById('scr1').classList.add('hidden');
                 document.getElementById('scr2').classList.remove('hidden');
-                initBingo();
+                startBingoProcess();
             }; g.appendChild(b);
         }
 
         let called = [];
-        function initBingo() {
+        function startBingoProcess() {
             const body = document.getElementById('card-body');
             body.innerHTML = "";
             let ranges = [,,,,];
             
-            // ካርቴላውን መሳል
+            // ካርቴላውን በትክክል መሳል
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr');
                 for(let c=0; c<5; c++) {
                     let td = document.createElement('td');
-                    if(r===2 && c===2) { td.innerText="FREE"; td.className="marked"; }
-                    else {
-                        let v = Math.floor(Math.random()*(ranges[c]-ranges[c]+1)) + ranges[c];
-                        td.innerText=v; td.id="c-"+v;
+                    if(r===2 && c===2) {
+                        td.innerText = "FREE"; td.className = "marked";
+                    } else {
+                        let min = ranges[c];
+                        let max = ranges[c];
+                        let v = Math.floor(Math.random() * (max - min + 1)) + min;
+                        td.innerText = v; td.id = "cell-" + v;
                     }
                     tr.appendChild(td);
                 } body.appendChild(tr);
             }
 
             // የ 30 ሴኮንድ ቆጠራ
-            let timeLeft = 30;
-            const timerEl = document.getElementById('timer-text');
+            let seconds = 30;
+            const tEl = document.getElementById('timer-display');
             const countdown = setInterval(() => {
-                timerEl.innerText = "ጨዋታው ለመጀመር " + timeLeft + " ይቀራል";
-                timeLeft--;
-                if(timeLeft < 0) {
+                tEl.innerText = "ጨዋታው ለመጀመር " + seconds + " ሴኮንድ ይቀራል";
+                seconds--;
+                if(seconds < 0) {
                     clearInterval(countdown);
-                    timerEl.classList.add('hidden');
+                    tEl.classList.add('hidden');
                     document.getElementById('stat-text').innerText = "ጨዋታው ተጀምሯል!";
-                    setInterval(draw, 4000); // በየ 4 ሴኮንዱ ይጠራል
+                    setInterval(callNextNumber, 4000);
                 }
             }, 1000);
         }
 
-        function draw() {
+        function callNextNumber() {
             if(called.length >= 75) return;
-            let n; do { n = Math.floor(Math.random()*75)+1; } while(called.includes(n));
+            let n; 
+            do { n = Math.floor(Math.random() * 75) + 1; } while(called.includes(n));
             called.push(n);
+
             let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
             document.getElementById('big-n').innerText = L + "-" + n;
-            document.getElementById('stat-text').innerText = L + " " + n + " ተጠርቷል!";
-            let el = document.getElementById("c-"+n);
-            if(el) el.classList.add('marked');
+            
+            let cell = document.getElementById("cell-" + n);
+            if(cell) cell.classList.add('marked');
         }
     </script>
 </body>
