@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo - Direct Card</title>
+    <title>Baruda Bingo - Fixed Selection</title>
     <style>
-        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
+        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* ገጽ 1: ቁጥር መምረጫ (1-100) */
         #selector-page { display: block; }
         .selection-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
@@ -18,7 +17,6 @@
         }
         .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
 
-        /* ገጽ 2: የካርቴላ ገጽ */
         #card-page { display: none; }
         .called-ball { 
             width: 100px; height: 100px; border: 6px solid #4ee44e; border-radius: 50%; 
@@ -27,7 +25,7 @@
         }
         .bingo-table { width: 100%; max-width: 360px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
         .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
-        .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 4px; width: 20%; }
+        .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 4px; }
         
         .marked { background: #4ee44e !important; color: white !important; transition: 0.3s; }
         .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
@@ -45,7 +43,7 @@
 
     <div id="card-page">
         <div class="called-ball" id="ball-display">-</div>
-        <div style="color: #4ee44e; margin-bottom: 10px; font-weight: bold;">የእርስዎ ካርቴላ № <span id="card-num-label"></span></div>
+        <div style="color: #4ee44e; margin-bottom: 10px; font-weight: bold;">ካርቴላ № <span id="card-num-label"></span></div>
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
             <tbody id="card-content"></tbody>
@@ -54,36 +52,43 @@
     </div>
 
     <script>
-        let myCardData = [[],[],[],[],[]];
-        let gameActive = false;
+        let myCardNumbers = [[],[],[],[],[]];
+        let isPlaying = false;
 
-        // 1-100 ቁጥሮችን መፍጠር
-        const grid = document.getElementById('grid');
+        // 1-100 ቁልፎችን መፍጠር
+        const gridContainer = document.getElementById('grid');
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
             btn.className = 'num-btn';
             btn.innerText = i;
-            btn.onclick = () => {
-                // ቁጥሩ ሲነካ በቀጥታ ጨዋታውን ይጀምራል
-                document.getElementById('selector-page').style.display = 'none';
-                document.getElementById('card-page').style.display = 'block';
-                document.getElementById('card-num-label').innerText = i;
-                setupBingoCard();
-                startCallingNumbers();
+            btn.onclick = function() {
+                openCard(i);
             };
-            grid.appendChild(btn);
+            gridContainer.appendChild(btn);
         }
 
-        function setupBingoCard() {
+        function openCard(n) {
+            // ገጾቹን መቀየር
+            document.getElementById('selector-page').style.display = 'none';
+            document.getElementById('card-page').style.display = 'block';
+            document.getElementById('card-num-label').innerText = n;
+            
+            // ካርቴላ መሥራት
+            createBingoLayout();
+            // ጥሪ መጀመር
+            startBingoCalling();
+        }
+
+        function createBingoLayout() {
             const tbody = document.getElementById('card-content');
             tbody.innerHTML = "";
-            myCardData = [[],[],[],[],[]];
+            myCardNumbers = [[],[],[],[],[]];
             let ranges = [,,,,];
             
             for(let i=0; i<5; i++) {
-                while(myCardData[i].length < 5) {
+                while(myCardNumbers[i].length < 5) {
                     let r = Math.floor(Math.random() * (ranges[i] - ranges[i] + 1)) + ranges[i];
-                    if(!myCardData[i].includes(r)) myCardData[i].push(r);
+                    if(!myCardNumbers[i].includes(r)) myCardNumbers[i].push(r);
                 }
             }
 
@@ -96,7 +101,7 @@
                         td.innerText = "FREE";
                         td.className = "free-slot";
                     } else {
-                        td.innerText = myCardData[c][r];
+                        td.innerText = myCardNumbers[c][r];
                     }
                     tr.appendChild(td);
                 }
@@ -104,31 +109,31 @@
             }
         }
 
-        function startCallingNumbers() {
-            gameActive = true;
+        function startBingoCalling() {
+            isPlaying = true;
             let balls = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            let idx = 0;
+            let currentIdx = 0;
 
-            const callLoop = () => {
-                if(!gameActive || idx >= 75) return;
+            function callNext() {
+                if(!isPlaying || currentIdx >= 75) return;
 
-                let num = balls[idx];
+                let num = balls[currentIdx];
                 let letter = num<=15?'B':num<=30?'I':num<=45?'N':num<=60?'G':'O';
                 document.getElementById('ball-display').innerText = `${letter}-${num}`;
 
-                // Auto Mark: ካርቴላው ላይ ካለ አረንጓዴ ያደርገዋል
+                // Auto-marking logic
                 for(let c=0; c<5; c++) {
                     for(let r=0; r<5; r++) {
-                        if(myCardData[c][r] === num) {
-                            let cell = document.getElementById(`cell-${c}-${r}`);
-                            if(cell) cell.classList.add('marked');
+                        if(myCardNumbers[c][r] === num) {
+                            let targetCell = document.getElementById(`cell-${c}-${r}`);
+                            if(targetCell) targetCell.classList.add('marked');
                         }
                     }
                 }
-                idx++;
-                setTimeout(callLoop, 4000); // በየ 4 ሰከንዱ ይጠራል
-            };
-            callLoop();
+                currentIdx++;
+                setTimeout(callNext, 4000); 
+            }
+            callNext();
         }
     </script>
 </body>
