@@ -8,7 +8,7 @@
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* ቁጥር መምረጫ ገጽ */
+        /* ቁጥር መምረጫ */
         #selector-page { display: block; }
         .selection-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
@@ -18,15 +18,15 @@
         }
         .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 3px #c23950; }
 
-        /* ካርቴላ ማሳያ ገጽ */
-        #card-page { display: none; margin-top: 20px; }
-        .card-header { color: #fee715; font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+        /* ካርቴላ ማሳያ */
+        #card-page { display: none; margin-top: 10px; }
+        .card-header { color: #fee715; font-size: 20px; font-weight: bold; margin-bottom: 15px; }
         .bingo-table { width: 100%; max-width: 360px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
-        .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
-        .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 4px; }
+        .bingo-table th { background: #e94560; color: white; padding: 12px; border-radius: 4px; font-size: 18px; }
+        .bingo-table td { background: white; color: black; height: 50px; font-size: 22px; font-weight: bold; border-radius: 4px; width: 20%; }
         .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
         
-        .back-btn { background: #4ee44e; border: none; padding: 12px 35px; border-radius: 6px; color: #161e30; font-weight: bold; margin-top: 25px; cursor: pointer; }
+        .back-btn { background: #4ee44e; border: none; padding: 12px 40px; border-radius: 8px; color: #161e30; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -34,8 +34,7 @@
     <div id="selector-page">
         <div class="title">Baruda Bingo</div>
         <p>ካርቴላ ቁጥር ይምረጡ (1-100)</p>
-        <div class="selection-grid" id="grid">
-            </div>
+        <div class="selection-grid" id="grid"></div>
     </div>
 
     <div id="card-page">
@@ -44,14 +43,13 @@
             <thead>
                 <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
             </thead>
-            <tbody id="card-content">
-                </tbody>
+            <tbody id="card-content"></tbody>
         </table>
         <button class="back-btn" onclick="goBack()">ተመለስ</button>
     </div>
 
     <script>
-        // ገጹ ሲከፈት 100 ቁጥሮችን መፍጠር
+        // 100 ቁጥሮችን መፍጠር
         const grid = document.getElementById('grid');
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
@@ -62,27 +60,26 @@
         }
 
         function showCard(n) {
-            // መምረጫውን ደብቅ፣ ካርቴላውን አሳይ
             document.getElementById('selector-page').style.display = 'none';
             document.getElementById('card-page').style.display = 'block';
             document.getElementById('card-num-display').innerText = n;
             
-            generateBingoNumbers();
-        }
-
-        function generateBingoNumbers() {
             const tbody = document.getElementById('card-content');
-            tbody.innerHTML = "";
+            tbody.innerHTML = ""; // ማጽዳት
+            
+            // የቢንጎ ቁጥሮችን ማመንጫ (1-75)
             let columns = [];
             let ranges = [,,,,];
             
             for (let i = 0; i < 5; i++) {
                 let pool = [];
                 for (let x = ranges[i]; x <= ranges[i]; x++) pool.push(x);
+                // በዘፈቀደ መቀላቀል
                 pool.sort(() => Math.random() - 0.5);
                 columns.push(pool.slice(0, 5));
             }
 
+            // ሰንጠረዡን መሥራት
             for (let r = 0; r < 5; r++) {
                 let row = document.createElement('tr');
                 for (let c = 0; c < 5; c++) {
@@ -91,7 +88,8 @@
                         cell.innerText = "FREE";
                         cell.className = "free-slot";
                     } else {
-                        cell.innerText = columns[c][r];
+                        // ቁጥሩ መኖሩን ማረጋገጥ (undefined እንዳይመጣ)
+                        cell.innerText = columns[c][r] || ""; 
                     }
                     row.appendChild(cell);
                 }
