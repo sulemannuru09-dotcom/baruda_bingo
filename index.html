@@ -3,47 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo - Full Game</title>
+    <title>Baruda Bingo - Pro</title>
     <style>
-        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
-        .title { color: #4ee44e; font-size: 28px; margin: 20px 0; font-weight: bold; }
+        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
+        .title { color: #4ee44e; font-size: 26px; margin: 15px 0; font-weight: bold; }
         
         /* መምረጫ ገጽ */
         #selector-view { display: block; }
         .selection-grid { 
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; 
-            max-width: 400px; margin: 20px auto; background: #0c121c; 
-            padding: 12px; border-radius: 15px; border: 2px solid #4ee44e;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
+            max-width: 400px; margin: 0 auto; background: #0c121c; 
+            padding: 10px; border-radius: 12px; border: 2px solid #4ee44e;
             max-height: 400px; overflow-y: auto;
         }
-        .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 3px #c23950; }
 
         /* ጨዋታ ገጽ */
-        #game-view { display: none; }
+        #game-view { display: none; position: relative; }
         .ball-display { 
-            width: 100px; height: 100px; border: 5px solid #4ee44e; 
-            border-radius: 50%; margin: 20px auto; display: flex; 
-            align-items: center; justify-content: center; font-size: 32px; font-weight: bold;
+            width: 90px; height: 90px; border: 5px solid #4ee44e; 
+            border-radius: 50%; margin: 15px auto; display: flex; 
+            align-items: center; justify-content: center; font-size: 28px; font-weight: bold; background: #161e30;
         }
-        .status-text { color: #fee715; font-size: 18px; margin: 10px 0; font-weight: bold; }
+        .status-text { color: #fee715; font-size: 18px; margin: 10px 0; font-weight: bold; min-height: 25px; }
         
-        .bingo-table { width: 95%; max-width: 360px; margin: 10px auto; border-collapse: separate; border-spacing: 4px; }
+        .bingo-table { width: 98%; max-width: 360px; margin: 5px auto; border-collapse: separate; border-spacing: 4px; }
         .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
-        .bingo-table td { background: white; color: black; height: 50px; font-size: 20px; font-weight: bold; border-radius: 4px; }
+        .bingo-table td { background: white; color: black; height: 50px; font-size: 22px; font-weight: bold; border-radius: 4px; transition: 0.3s; }
         .called { background: #4ee44e !important; color: white !important; }
         .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
 
+        /* አሸናፊ መልዕክት */
+        #win-msg { 
+            display: none; background: rgba(78, 228, 78, 0.95); color: #161e30; 
+            padding: 20px; border-radius: 15px; position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); z-index: 100; width: 80%; font-size: 24px; font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
         .history-grid { 
             display: grid; grid-template-columns: repeat(15, 1fr); gap: 2px; 
-            width: 95%; margin: 20px auto; background: #0c121c; padding: 5px; border-radius: 5px;
+            width: 98%; margin: 15px auto; background: #0c121c; padding: 5px; border-radius: 5px;
         }
-        .h-box { background: #222; font-size: 9px; padding: 4px 0; border: 0.1px solid #444; }
+        .h-box { background: #222; font-size: 9px; padding: 4px 0; border: 0.1px solid #333; color: #777; }
         .h-called { background: #4ee44e; color: black; font-weight: bold; }
         
-        .leave-btn { background: #ff4d4d; border: none; padding: 10px 30px; border-radius: 5px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        .leave-btn { background: #ff4d4d; border: none; padding: 10px 40px; border-radius: 6px; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <div id="win-msg"></div>
 
     <div id="selector-view">
         <div class="title">Baruda Bingo</div>
@@ -52,11 +62,11 @@
     </div>
 
     <div id="game-view">
-        <div style="display:flex; justify-content: space-around; font-size:14px; padding:10px; color:#fee715;">
+        <div style="display:flex; justify-content: space-around; font-size:13px; padding:5px; color:#fee715; background: #0c121c;">
             <span>Players: 400</span><span>Bet: 10</span><span>Derash: 3200</span>
         </div>
         <div class="ball-display" id="current-ball">-</div>
-        <div class="status-text" id="status">በመዘጋጀት ላይ...</div>
+        <div id="status" class="status-text">በመዘጋጀት ላይ...</div>
         
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
@@ -68,20 +78,21 @@
     </div>
 
     <script>
-        let calledNumbers = [];
+        let calledNumbers = new Set();
         let myCard = [];
-        let gameStarted = false;
+        let selectedBtnNum = 0;
+        let callInterval;
+        let isGameOver = false;
 
-        // ቁጥር መምረጫ
         const grid = document.getElementById('num-grid');
         for (let i = 1; i <= 200; i++) {
             const btn = document.createElement('button');
             btn.className = 'num-btn'; btn.innerText = i;
-            btn.onclick = () => startGame(i);
+            btn.onclick = () => { selectedBtnNum = i; startGame(); };
             grid.appendChild(btn);
         }
 
-        function startGame(n) {
+        function startGame() {
             document.getElementById('selector-view').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
             createCard();
@@ -103,47 +114,44 @@
         }
 
         function beginCalling() {
-            let allNums = Array.from({length: 75}, (_, i) => i + 1);
-            allNums.sort(() => Math.random() - 0.5);
-
+            let allNums = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
             let i = 0;
-            let callInterval = setInterval(() => {
-                if (i >= 75) { clearInterval(callInterval); return; }
+            callInterval = setInterval(() => {
+                if (i >= 75 || isGameOver) { clearInterval(callInterval); return; }
                 
                 let num = allNums[i];
-                let letter = getLetter(num);
-                let ballText = `${letter}-${num}`;
+                calledNumbers.add(num);
                 
-                document.getElementById('current-ball').innerText = ballText;
-                calledNumbers.push(num);
+                let letter = num <= 15 ? 'B' : num <= 30 ? 'I' : num <= 45 ? 'N' : num <= 60 ? 'G' : 'O';
+                document.getElementById('current-ball').innerText = `${letter}-${num}`;
+                
                 updateUI(num);
+                checkWin();
                 i++;
             }, 5000);
-        }
-
-        function getLetter(n) {
-            if (n <= 15) return 'B'; if (n <= 30) return 'I';
-            if (n <= 45) return 'N'; if (n <= 60) return 'G';
-            return 'O';
         }
 
         function createCard() {
             const tbody = document.getElementById('bingo-body');
             tbody.innerHTML = "";
-            let columns = [];
+            myCard = [];
+            let ranges = [,,,,];
+            
             for (let i = 0; i < 5; i++) {
-                let start = (i * 15) + 1;
-                let pool = Array.from({length: 15}, (_, j) => start + j).sort(() => Math.random() - 0.5);
-                columns.push(pool.slice(0, 5));
+                let pool = Array.from({length: 15}, (_, j) => ranges[i] + j).sort(() => Math.random() - 0.5);
+                myCard.push(pool.slice(0, 5));
             }
-            myCard = columns;
+
             for (let r = 0; r < 5; r++) {
                 let tr = document.createElement('tr');
                 for (let c = 0; c < 5; c++) {
                     let td = document.createElement('td');
                     td.id = `cell-${c}-${r}`;
-                    if (r === 2 && c === 2) { td.innerText = "FREE"; td.className = "free-slot"; }
-                    else { td.innerText = columns[c][r]; }
+                    if (r === 2 && c === 2) { 
+                        td.innerText = "FREE"; td.className = "free-slot called"; 
+                    } else { 
+                        td.innerText = myCard[c][r]; 
+                    }
                     tr.appendChild(td);
                 }
                 tbody.appendChild(tr);
@@ -160,7 +168,6 @@
         }
 
         function updateUI(num) {
-            // በካርቴላው ላይ ካለ አረንጓዴ ማድረግ
             for(let c=0; c<5; c++) {
                 for(let r=0; r<5; r++) {
                     if(myCard[c][r] === num) {
@@ -168,8 +175,34 @@
                     }
                 }
             }
-            // በታችኛው ዝርዝር ላይ ማድመቅ
             document.getElementById(`hist-${num}`).classList.add('h-called');
+        }
+
+        function checkWin() {
+            const isCalled = (c, r) => {
+                if (c === 2 && r === 2) return true;
+                return calledNumbers.has(myCard[c][r]);
+            };
+
+            let win = false;
+            // Horizontal & Vertical
+            for (let i = 0; i < 5; i++) {
+                if (.every(j => isCalled(j, i))) win = true;
+                if (.every(j => isCalled(i, j))) win = true;
+            }
+            // Diagonals
+            if (.every(i => isCalled(i, i))) win = true;
+            if (.every(i => isCalled(i, 4-i))) win = true;
+            // 4 Corners
+            if (isCalled(0,0) && isCalled(4,0) && isCalled(0,4) && isCalled(4,4)) win = true;
+
+            if (win) {
+                isGameOver = true;
+                const msg = document.getElementById('win-msg');
+                msg.innerHTML = `🎉 እንኳን ደስ አለህ! <br> ካርቴላ ቁጥር ${selectedBtnNum} አሸንፈሃል!`;
+                msg.style.display = 'block';
+                document.getElementById('status').innerText = "አሸንፈሃል!";
+            }
         }
     </script>
 </body>
