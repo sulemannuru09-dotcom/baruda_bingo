@@ -3,59 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Pro</title>
+    <title>Baruda Bingo Fixed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: sans-serif; background: #12182b; color: white; text-align: center; margin: 0; padding: 0; }
         .hidden { display: none !important; }
-        .circle { width: 95px; height: 95px; border: 5px solid #4ee44e; border-radius: 50%; margin: 15px auto; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #4ee44e; background: rgba(78, 228, 78, 0.1); }
-        .bingo-table { width: 98%; max-width: 380px; margin: 5px auto; border-collapse: separate; border-spacing: 2px; }
-        .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; font-size: 18px; }
-        .bingo-table td { background: #fff; color: #333; height: 50px; border-radius: 4px; font-size: 22px; font-weight: bold; width: 20%; }
-        .marked { background: #4ee44e !important; color: white !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
-        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; }
-        .btn { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; }
+        .circle { width: 90px; height: 90px; border: 5px solid #4ee44e; border-radius: 50%; margin: 15px auto; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; color: #4ee44e; background: rgba(78, 228, 78, 0.1); }
+        .bingo-table { width: 95%; max-width: 360px; margin: 10px auto; border-collapse: separate; border-spacing: 3px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 8px; }
+        .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
+        .bingo-table td { background: #ffffff; color: #333333; height: 50px; border-radius: 4px; font-size: 20px; font-weight: bold; width: 20%; }
+        .marked { background: #4ee44e !important; color: white !important; }
+        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        .btn { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div id="scr1">
+    <div id="scr-select">
         <h2 style="margin-top:20px;">Dawi Bingo</h2>
         <p>ካርቴላ ይምረጡ</p>
-        <div class="sel-grid" id="grid"></div>
+        <div class="sel-grid" id="main-grid"></div>
     </div>
 
-    <div id="scr2" class="hidden">
-        <div class="circle" id="draw">-</div>
-        <p id="stat" style="color:#4ee44e; font-weight:bold;">በመጠበቅ ላይ...</p>
+    <div id="scr-game" class="hidden">
+        <div class="circle" id="num-box">-</div>
+        <p id="msg-text" style="color:#4ee44e; font-weight:bold;">ጨዋታው ተጀምሯል...</p>
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="card"></tbody>
+            <tbody id="table-body"></tbody>
         </table>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-        const g = document.getElementById('grid');
-        
-        // 1-100 ቁጥሮችን መፍጠር
+        const grid = document.getElementById('main-grid');
+
         for(let i=1; i<=100; i++) {
-            let b = document.createElement('button');
-            b.className = 'btn'; b.innerText = i;
+            let b = document.createElement('button'); b.className = 'btn'; b.innerText = i;
             b.onclick = () => {
-                document.getElementById('scr1').classList.add('hidden');
-                document.getElementById('scr2').classList.remove('hidden');
-                playGame();
+                document.getElementById('scr-select').classList.add('hidden');
+                document.getElementById('scr-game').classList.remove('hidden');
+                initGame();
             };
-            g.appendChild(b);
+            grid.appendChild(b);
         }
 
         let called = [];
-        function playGame() {
-            const container = document.getElementById('card');
+        function initGame() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = ""; // መጀመሪያ ማጽዳት
             let ranges = [,,,,];
-            
-            // የካርቴላ ቁጥሮችን ማመንጨት
             let cols = ranges.map(r => {
                 let n = [];
                 while(n.length < 5) {
@@ -65,8 +61,6 @@
                 return n;
             });
 
-            // ሰንጠረዡን መገንባት
-            container.innerHTML = ""; // ቀድሞ የነበረውን ማጽዳት
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr');
                 for(let c=0; c<5; c++) {
@@ -75,26 +69,24 @@
                     if(r===2 && c===2) {
                         td.innerText = "FREE"; td.className = "marked";
                     } else {
-                        td.innerText = val; td.id = "x-"+val;
+                        td.innerText = val; td.id = "cell-"+val;
                     }
                     tr.appendChild(td);
                 }
-                container.appendChild(tr);
+                tbody.appendChild(tr);
             }
+            setInterval(draw, 4000);
+        }
 
-            // ቁጥሮችን መጥራት መጀመር (በየ 4 ሰከንዱ)
-            setInterval(() => {
-                if(called.length >= 75) return;
-                let p; do { p = Math.floor(Math.random()*75)+1; } while(called.includes(p));
-                called.push(p);
-
-                let L = p<=15?"B":p<=30?"I":p<=45?"N":p<=60?"G":"O";
-                document.getElementById('draw').innerText = L + "-" + p;
-                document.getElementById('stat').innerText = L + " " + p + " ተጠርቷል!";
-
-                let el = document.getElementById("x-"+p);
-                if(el) el.classList.add('marked');
-            }, 4000);
+        function draw() {
+            if(called.length >= 75) return;
+            let n; do { n = Math.floor(Math.random()*75)+1; } while(called.includes(n));
+            called.push(n);
+            let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
+            document.getElementById('num-box').innerText = L + "-" + n;
+            document.getElementById('msg-text').innerText = L + " " + n + " ተጠርቷል!";
+            let cell = document.getElementById("cell-"+n);
+            if(cell) cell.classList.add('marked');
         }
     </script>
 </body>
