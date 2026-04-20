@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dawi Bingo Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #101820; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 0; }
-        .header { display: flex; justify-content: space-around; background: #1a222d; padding: 10px; font-size: 14px; }
+        body { background: #101820; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 0; overflow: hidden; }
+        .header { display: flex; justify-content: space-around; background: #1a222d; padding: 10px; font-size: 14px; border-bottom: 2px solid #2a3441; }
         .header b { color: #fee715; }
-        .ball-area { margin: 20px auto; width: 100px; height: 100px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; }
-        .grid { width: 95%; max-width: 380px; margin: 10px auto; border-spacing: 4px; }
-        .grid th { background: #e94560; padding: 10px; border-radius: 4px; }
-        .grid td { background: white; color: black; height: 55px; width: 20%; font-size: 22px; font-weight: bold; border-radius: 4px; }
-        .marked { background: #4ee44e !important; color: white !important; }
-        #status { color: #fee715; margin: 10px; font-weight: bold; }
+        .ball-area { margin: 15px auto; width: 90px; height: 90px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; background: rgba(78, 228, 78, 0.1); }
+        .grid { width: 95%; max-width: 380px; margin: 5px auto; border-spacing: 4px; }
+        .grid th { background: #e94560; padding: 8px; border-radius: 4px; font-size: 18px; }
+        .grid td { background: white; color: black; height: 50px; width: 20%; font-size: 22px; font-weight: bold; border-radius: 4px; transition: 0.3s; }
+        .marked { background: #4ee44e !important; color: white !important; transform: scale(0.9); }
+        #status { color: #fee715; margin: 8px; font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -37,66 +37,80 @@
         tg.ready();
         tg.expand();
 
-        let numbers = [];
-        let called = [];
+        let board = [];
+        let calledNumbers = [];
 
-        function start() {
+        function generateBingoCard() {
             const tbody = document.getElementById('card');
             tbody.innerHTML = "";
-            let ranges = [,,,,];
-            
+            board = [];
+
+            // B: 1-15, I: 16-30, N: 31-45, G: 46-60, O: 61-75
+            let columns = [];
+            for (let i = 0; i < 5; i++) {
+                let start = (i * 15) + 1;
+                let end = start + 14;
+                let pool = Array.from({length: 15}, (_, k) => k + start);
+                // Shuffle pool
+                pool.sort(() => Math.random() - 0.5);
+                columns.push(pool.slice(0, 5));
+            }
+
             for (let r = 0; r < 5; r++) {
                 let tr = document.createElement('tr');
-                numbers[r] = [];
+                board[r] = [];
                 for (let c = 0; c < 5; c++) {
                     let td = document.createElement('td');
+                    let val = columns[c][r];
+                    
                     if (r === 2 && c === 2) {
                         td.innerText = "FREE";
                         td.className = "marked";
-                        numbers[r][c] = { v: "FREE", m: true };
+                        board[r][c] = { v: "FREE", m: true };
                     } else {
-                        let val;
-                        do {
-                            val = Math.floor(Math.random() * (ranges[c] - ranges[c] + 1)) + ranges[c];
-                        } while (numbers.some(row => row[c] && row[c].v === val));
                         td.innerText = val;
                         td.id = `cell-${r}-${c}`;
-                        numbers[r][c] = { v: val, m: false };
+                        board[r][c] = { v: val, m: false };
                     }
                     tr.appendChild(td);
                 }
                 tbody.appendChild(tr);
             }
-            
+            startTimer();
+        }
+
+        function startTimer() {
             let count = 5;
             let timer = setInterval(() => {
                 document.getElementById('status').innerText = "ጨዋታው በ " + count + " ሰከንድ ይጀምራል...";
                 if (count-- <= 0) {
                     clearInterval(timer);
                     document.getElementById('status').innerText = "ጨዋታው ተጀምሯል!";
-                    setInterval(draw, 4000);
+                    setInterval(drawBall, 4000);
                 }
             }, 1000);
         }
 
-        function draw() {
+        function drawBall() {
+            if (calledNumbers.length >= 75) return;
             let ball;
-            do { ball = Math.floor(Math.random() * 75) + 1; } while (called.includes(ball));
-            called.push(ball);
+            do { ball = Math.floor(Math.random() * 75) + 1; } while (calledNumbers.includes(ball));
+            calledNumbers.push(ball);
+
             let L = ball <= 15 ? "B" : ball <= 30 ? "I" : ball <= 45 ? "N" : ball <= 60 ? "G" : "O";
             document.getElementById('ball').innerText = L + "-" + ball;
 
             for (let r = 0; r < 5; r++) {
                 for (let c = 0; c < 5; c++) {
-                    if (numbers[r][c].v === ball) {
-                        document.getElementById(`cell-${r}-${c}`).className = "marked";
+                    if (board[r][c].v === ball) {
+                        const cell = document.getElementById(`cell-${r}-${c}`);
+                        if(cell) cell.className = "marked";
                     }
                 }
             }
         }
 
-        // ገጹ እንደተከፈተ እንዲሰራ የሚያስገድድ
-        window.onload = start;
+        window.onload = generateBingoCard;
     </script>
 </body>
 </html>
