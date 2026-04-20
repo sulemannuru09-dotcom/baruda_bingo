@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo - Auto Caller</title>
+    <title>Baruda Bingo - Fixed</title>
     <style>
-        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* ገጽ 1: ቁጥር መምረጫ */
+        /* ቁጥር መምረጫ */
         #selector-page { display: block; }
         .selection-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
@@ -18,7 +18,7 @@
         }
         .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 3px #c23950; }
 
-        /* ገጽ 2: የ 30 ሰከንድ ቆጠራ */
+        /* ቆጠራ */
         #timer-page { display: none; margin-top: 50px; }
         .timer-circle { 
             width: 130px; height: 130px; border: 8px solid #4ee44e; border-radius: 50%; 
@@ -26,22 +26,22 @@
             font-size: 45px; font-weight: bold; color: #fee715;
         }
 
-        /* ገጽ 3: የጨዋታ ገጽ */
+        /* ጨዋታ */
         #card-page { display: none; }
         .called-ball { 
-            width: 90px; height: 90px; border: 5px solid #4ee44e; border-radius: 50%; 
+            width: 100px; height: 100px; border: 6px solid #4ee44e; border-radius: 50%; 
             margin: 10px auto; display: flex; align-items: center; justify-content: center; 
-            font-size: 28px; font-weight: bold; background: #161e30; color: white;
+            font-size: 32px; font-weight: bold; background: #161e30; color: white;
+            box-shadow: 0 0 15px rgba(78, 228, 78, 0.5);
         }
         .bingo-table { width: 100%; max-width: 360px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
         .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
-        .bingo-table td { background: white; color: black; height: 50px; font-size: 22px; font-weight: bold; border-radius: 4px; }
+        .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 4px; width: 20%; }
         
-        /* ቁጥሩ ሲጠራ የሚቀባ ቀለም */
         .marked { background: #4ee44e !important; color: white !important; transition: 0.3s; }
-        .free-slot { background: #4ee44e !important; color: white !important; font-size: 12px !important; }
+        .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
         
-        .leave-btn { background: #ff4d4d; border: none; padding: 10px 35px; border-radius: 8px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        .leave-btn { background: #ff4d4d; border: none; padding: 12px 40px; border-radius: 8px; color: white; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -53,13 +53,14 @@
     </div>
 
     <div id="timer-page">
-        <div style="font-size: 20px; color: #fee715;">ጨዋታው ሊጀምር ነው...</div>
+        <div style="font-size: 22px; color: #fee715; font-weight: bold;">ጨዋታው ሊጀምር ነው...</div>
         <div class="timer-circle" id="countdown">30</div>
     </div>
 
     <div id="card-page">
         <div class="called-ball" id="ball-display">-</div>
-        <div id="game-status" style="color: #fee715; font-weight: bold; margin-bottom: 10px;">ጨዋታው ተጀምሯል!</div>
+        <div style="color: #fee715; font-weight: bold; margin-bottom: 5px;">ጨዋታው ተጀምሯል!</div>
+        <div style="color: #4ee44e; margin-bottom: 10px;">ካርቴላ № <span id="card-num-label"></span></div>
         
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
@@ -69,83 +70,98 @@
     </div>
 
     <script>
-        let myNumbers = [];
-        let gameActive = false;
+        let myCardData = []; 
+        let gameRunning = false;
 
-        // 100 ቁጥሮችን መፍጠር
+        // 100 ቁልፎችን መፍጠር
         const grid = document.getElementById('grid');
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
             btn.className = 'num-btn';
             btn.innerText = i;
-            btn.onclick = () => startTimer(i);
+            btn.onclick = () => {
+                document.getElementById('selector-page').style.display = 'none';
+                document.getElementById('timer-page').style.display = 'block';
+                document.getElementById('card-num-label').innerText = i;
+                startCount(i);
+            };
             grid.appendChild(btn);
         }
 
-        function startTimer(n) {
-            document.getElementById('selector-page').style.display = 'none';
-            document.getElementById('timer-page').style.display = 'block';
-            let timeLeft = 30;
+        function startCount(n) {
+            let sec = 30;
             let t = setInterval(() => {
-                timeLeft--;
-                document.getElementById('countdown').innerText = timeLeft;
-                if(timeLeft <= 0) { clearInterval(t); launchBingo(); }
+                sec--;
+                document.getElementById('countdown').innerText = sec;
+                if(sec <= 0) { 
+                    clearInterval(t); 
+                    initGame(); 
+                }
             }, 1000);
         }
 
-        function launchBingo() {
+        function initGame() {
             document.getElementById('timer-page').style.display = 'none';
             document.getElementById('card-page').style.display = 'block';
-            createCard();
-            startCalling();
-        }
-
-        function createCard() {
+            
+            // ካርቴላ መሥራት
             const tbody = document.getElementById('card-content');
             tbody.innerHTML = "";
-            myNumbers = [];
+            myCardData = [];
+            
             let ranges = [,,,,];
             for(let i=0; i<5; i++) {
-                let col = Array.from({length:15}, (_,j)=>ranges[i]+j).sort(()=>Math.random()-0.5).slice(0,5);
-                myNumbers.push(col);
+                let col = [];
+                while(col.length < 5) {
+                    let r = Math.floor(Math.random() * (ranges[i] - ranges[i] + 1)) + ranges[i];
+                    if(!col.includes(r)) col.push(r);
+                }
+                myCardData.push(col);
             }
+
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr');
                 for(let c=0; c<5; c++) {
                     let td = document.createElement('td');
-                    td.id = `cell-${c}-${r}`;
-                    if(r===2 && c===2) { td.innerText="FREE"; td.className="free-slot"; }
-                    else { td.innerText = myNumbers[c][r]; }
+                    td.id = `c-${c}-${r}`;
+                    if(r===2 && c===2) {
+                        td.innerText = "FREE";
+                        td.className = "free-slot";
+                    } else {
+                        td.innerText = myCardData[c][r];
+                    }
                     tr.appendChild(td);
                 }
                 tbody.appendChild(tr);
             }
+            
+            startCaller();
         }
 
-        function startCalling() {
-            gameActive = true;
-            let allBalls = Array.from({length:75}, (_,i)=>i+1).sort(()=>Math.random()-0.5);
-            let index = 0;
-            
-            let callInterval = setInterval(() => {
-                if(index >= 75 || !gameActive) { clearInterval(callInterval); return; }
+        function startCaller() {
+            gameRunning = true;
+            let balls = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            let idx = 0;
+
+            let caller = setInterval(() => {
+                if(idx >= 75 || !gameRunning) { clearInterval(caller); return; }
                 
-                let num = allBalls[index];
-                let letter = num<=15?'B':num<=30?'I':num<=45?'N':num<=60?'G':'O';
+                let num = balls[idx];
+                let lettr = num<=15?'B':num<=30?'I':num<=45?'N':num<=60?'G':'O';
                 
-                // ቁጥሩን መጥራት (ማሳየት)
-                document.getElementById('ball-display').innerText = `${letter}-${num}`;
-                
-                // በካርቴላችን ላይ ካለ ምልክት ማድረግ
+                document.getElementById('ball-display').innerText = `${lettr}-${num}`;
+
+                // በካርቴላው ላይ መፈተሽ
                 for(let c=0; c<5; c++) {
                     for(let r=0; r<5; r++) {
-                        if(myNumbers[c][r] === num) {
-                            document.getElementById(`cell-${c}-${r}`).classList.add('marked');
+                        if(myCardData[c][r] === num) {
+                            let cell = document.getElementById(`c-${c}-${r}`);
+                            if(cell) cell.classList.add('marked');
                         }
                     }
                 }
-                index++;
-            }, 5000); // በየ 5 ሰከንዱ ቁጥር ይጠራል
+                idx++;
+            }, 5000); // በየ 5 ሰከንዱ ይጠራል
         }
     </script>
 </body>
