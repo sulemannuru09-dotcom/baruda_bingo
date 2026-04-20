@@ -3,34 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Final Pro</title>
+    <title>Dawi Bingo Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; overflow: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; overflow: hidden; }
         .header-info { display: flex; justify-content: space-around; background: #0b132b; padding: 10px 0; font-size: 12px; border-bottom: 1px solid #3a506b; }
         .header-info b { font-size: 16px; color: #ffffff; }
-        .circle-container { margin: 15px auto; width: 100px; height: 100px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); }
-        .called-num { font-size: 38px; font-weight: bold; color: #4ee44e; }
+        .circle-outer { margin: 15px auto; width: 100px; height: 100px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); }
+        .called-num { font-size: 34px; font-weight: bold; color: #4ee44e; }
         .bingo-table { width: 95%; max-width: 380px; margin: 5px auto; border-collapse: separate; border-spacing: 3px; }
-        .bingo-table th { background: #e94560; color: white; padding: 10px 0; border-radius: 4px; font-size: 18px; }
-        .bingo-table td { background: #ffffff; color: #000000; height: 50px; border-radius: 4px; font-size: 22px; font-weight: bold; width: 20%; }
+        .bingo-table th { background: #e94560; color: white; padding: 10px 0; border-radius: 4px; font-size: 18px; width: 20%; }
+        .bingo-table td { background: #ffffff; color: #000000; height: 52px; border-radius: 4px; font-size: 22px; font-weight: bold; }
         .marked { background: #4ee44e !important; color: white !important; }
         .hidden { display: none !important; }
-        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; max-height: 80vh; overflow-y: auto; }
-        .btn-select { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        #timer-display { font-size: 22px; color: #f1c40f; margin: 10px; font-weight: bold; }
-        /* አሸናፊ ማሳወቂያ */
-        #win-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .win-card { background: #e94560; padding: 30px; border-radius: 20px; border: 4px solid white; box-shadow: 0 0 30px rgba(233, 69, 96, 0.5); width: 80%; max-width: 300px; }
-        .win-card h1 { margin: 0; font-size: 40px; }
-        .win-card p { font-size: 20px; margin: 15px 0; }
-        .reset-btn { background: white; color: #e94560; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; max-height: 70vh; overflow-y: auto; }
+        .btn-select { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; }
+        #timer-text { font-size: 20px; color: #f1c40f; margin: 10px; font-weight: bold; }
+        #win-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .win-box { background: #e94560; padding: 40px 20px; border-radius: 20px; border: 4px solid white; width: 85%; }
+        .win-box h1 { font-size: 45px; margin: 0; }
+        .win-box button { margin-top: 20px; padding: 12px 30px; border-radius: 10px; border: none; background: white; color: #e94560; font-weight: bold; font-size: 18px; }
     </style>
 </head>
 <body>
 
     <div id="scr1">
-        <h2 style="margin-top:20px;">Dawi Bingo</h2>
+        <h2 style="margin-top:30px;">Dawi Bingo</h2>
         <p>ካርቴላ ይምረጡ</p>
         <div class="sel-grid" id="grid"></div>
     </div>
@@ -41,9 +39,9 @@
             <div>Bet <b>10</b></div>
             <div>Derash <b>3200</b></div>
         </div>
-        <div class="circle-container"><div class="called-num" id="big-n">-</div></div>
-        <div id="timer-display"></div>
-        <p id="stat-text" style="font-weight:bold; color:#4ee44e;">የእርስዎ ካርቴላ</p>
+        <div class="circle-outer"><div class="called-num" id="big-n">-</div></div>
+        <div id="timer-text"></div>
+        <p id="stat-text" style="font-weight:bold; color:#4ee44e;">በዝግጅት ላይ...</p>
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
             <tbody id="card-body"></tbody>
@@ -51,44 +49,36 @@
     </div>
 
     <div id="win-overlay" class="hidden">
-        <div class="win-card">
+        <div class="win-box">
             <h1>BINGO! 🎉</h1>
-            <p>አሸናፊ ነህ!</p>
-            <button class="reset-btn" onclick="resetGame()">አዲስ ጨዋታ ጀምር</button>
+            <p style="font-size: 22px;">አሸናፊ ነህ!</p>
+            <button onclick="resetGame()">አዲስ ጨዋታ ጀምር</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-        let cardData = []; let calledNumbers = []; let gameInterval; let isGameOver = false;
+        let cardData = []; let called = []; let gameLoop; let isOver = false;
 
-        // 1. መምረጫ ቁጥሮችን መፍጠር
-        function createSelectionGrid() {
-            const grid = document.getElementById('grid'); grid.innerHTML = "";
+        function buildGrid() {
+            const g = document.getElementById('grid'); g.innerHTML = "";
             for(let i=1; i<=25; i++) {
                 let b = document.createElement('button'); b.className='btn-select'; b.innerText=i;
-                b.onclick = () => selectCard(i);
-                grid.appendChild(b);
+                b.onclick = () => start(i); g.appendChild(b);
             }
         }
 
-        function selectCard(num) {
+        function start(id) {
             document.getElementById('scr1').classList.add('hidden');
             document.getElementById('scr2').classList.remove('hidden');
-            initGame();
+            setupCard();
         }
 
-        function initGame() {
-            isGameOver = false; calledNumbers = [];
-            document.getElementById('big-n').innerText = "-";
-            document.getElementById('win-overlay').classList.add('hidden');
-            document.getElementById('timer-display').classList.remove('hidden');
-            
+        function setupCard() {
             const body = document.getElementById('card-body'); body.innerHTML = "";
-            cardData = [];
+            cardData = []; called = []; isOver = false;
             let ranges = [,,,,];
 
-            // 2. ካርቴላ መፍጠር (ድግግሞሽ የሌለው)
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr'); let row = [];
                 for(let c=0; c<5; c++) {
@@ -98,29 +88,29 @@
                     } else {
                         let v;
                         do { v = Math.floor(Math.random()*(ranges[c]-ranges[c]+1))+ranges[c]; } 
-                        while(row.some(x => x.v === v) || cardData.some(prevRow => prevRow[c].v === v));
+                        while(row.some(x => x.v === v) || cardData.some(prev => prev[c].v === v));
                         td.innerText=v; td.id="r"+r+"c"+c; row.push({v:v, m:false});
                     }
                     tr.appendChild(td);
                 } cardData.push(row); body.appendChild(tr);
             }
 
-            // 3. 30 ሴኮንድ ቆጠራ
-            let timeLeft = 30;
-            const tEl = document.getElementById('timer-display');
+            let seconds = 30;
+            const tEl = document.getElementById('timer-text');
             const cd = setInterval(() => {
-                tEl.innerText = "ጨዋታው ለመጀመር " + timeLeft + " ይቀራል";
-                if(timeLeft <= 0) {
+                tEl.innerText = "ጨዋታው ለመጀመር " + seconds + " ይቀራል";
+                if(seconds-- <= 0) {
                     clearInterval(cd); tEl.classList.add('hidden');
-                    gameInterval = setInterval(drawNumber, 4000);
-                } timeLeft--;
+                    document.getElementById('stat-text').innerText = "ጨዋታው ተጀምሯል!";
+                    gameLoop = setInterval(draw, 4000);
+                }
             }, 1000);
         }
 
-        function drawNumber() {
-            if(isGameOver || calledNumbers.length >= 75) { clearInterval(gameInterval); return; }
-            let n; do { n = Math.floor(Math.random()*75)+1; } while(calledNumbers.includes(n));
-            calledNumbers.push(n);
+        function draw() {
+            if(isOver || called.length >= 75) { clearInterval(gameLoop); return; }
+            let n; do { n = Math.floor(Math.random()*75)+1; } while(called.includes(n));
+            called.push(n);
             let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
             document.getElementById('big-n').innerText = L + "-" + n;
 
@@ -128,37 +118,35 @@
                 for(let c=0; c<5; c++) {
                     if(cardData[r][c].v === n) {
                         cardData[r][c].m = true;
-                        document.getElementById("r"+r+"c"+c).classList.add('marked');
-                        checkWinner();
+                        let el = document.getElementById("r"+r+"c"+c);
+                        if(el) el.classList.add('marked');
+                        checkWin();
                     }
                 }
             }
         }
 
-        function checkWinner() {
+        function checkWin() {
             for(let i=0; i<5; i++) {
-                if(cardData[i].every(x => x.m)) return triggerWin(); // Row
-                if(cardData.every(r => r[i].m)) return triggerWin(); // Column
+                if(cardData[i].every(x => x.m)) return win();
+                if(cardData.every(r => r[i].m)) return win();
             }
-            if(.every(i => cardData[i][i].m)) return triggerWin(); // Diag 1
-            if(.every(i => cardData[i][4-i].m)) return triggerWin(); // Diag 2
-            if(cardData.m && cardData.m && cardData.m && cardData.m) return triggerWin(); // Corners
+            if(.every(i => cardData[i][i].m)) return win();
+            if(.every(i => cardData[i][4-i].m)) return win();
+            if(cardData.m && cardData.m && cardData.m && cardData.m) return win();
         }
 
-        function triggerWin() {
-            isGameOver = true; clearInterval(gameInterval);
+        function win() {
+            isOver = true; clearInterval(gameLoop);
             document.getElementById('win-overlay').classList.remove('hidden');
             tg.HapticFeedback.notificationOccurred('success');
         }
 
         function resetGame() {
-            document.getElementById('scr2').classList.add('hidden');
-            document.getElementById('scr1').classList.remove('hidden');
-            document.getElementById('win-overlay').classList.add('hidden');
-            createSelectionGrid();
+            location.reload();
         }
 
-        createSelectionGrid();
+        buildGrid();
     </script>
 </body>
 </html>
