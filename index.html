@@ -3,35 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo - Card View</title>
+    <title>Baruda Bingo - Full Game</title>
     <style>
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .title { color: #4ee44e; font-size: 28px; margin: 20px 0; font-weight: bold; }
         
-        /* ቁጥር መምረጫ ገጽ */
+        /* መምረጫ ገጽ */
         #selector-view { display: block; }
-        .title { color: #4ee44e; font-size: 28px; margin: 20px 0; }
         .selection-grid { 
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
-            max-width: 400px; margin: 0 auto; background: #0c121c; 
-            padding: 10px; border-radius: 12px; border: 2px solid #4ee44e;
-            max-height: 450px; overflow-y: auto;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; 
+            max-width: 400px; margin: 20px auto; background: #0c121c; 
+            padding: 12px; border-radius: 15px; border: 2px solid #4ee44e;
+            max-height: 400px; overflow-y: auto;
         }
-        .num-btn { 
-            background: #e94560; color: white; border: none; padding: 15px 0; 
-            border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px #c23950;
-        }
+        .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* ካርቴላ ማሳያ ገጽ */
-        #card-view { display: none; margin-top: 20px; }
-        .card-header { color: #fee715; font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+        /* ጨዋታ ገጽ */
+        #game-view { display: none; }
+        .ball-display { 
+            width: 100px; height: 100px; border: 5px solid #4ee44e; 
+            border-radius: 50%; margin: 20px auto; display: flex; 
+            align-items: center; justify-content: center; font-size: 32px; font-weight: bold;
+        }
+        .status-text { color: #fee715; font-size: 18px; margin: 10px 0; font-weight: bold; }
         
-        .bingo-table { width: 95%; max-width: 380px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
-        .bingo-table th { background: #e94560; color: white; padding: 12px; border-radius: 4px; font-size: 20px; }
-        .bingo-table td { background: white; color: black; height: 55px; width: 20%; font-size: 24px; font-weight: bold; border-radius: 4px; }
-        .free-slot { background: #4ee44e !important; color: white !important; }
+        .bingo-table { width: 95%; max-width: 360px; margin: 10px auto; border-collapse: separate; border-spacing: 4px; }
+        .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
+        .bingo-table td { background: white; color: black; height: 50px; font-size: 20px; font-weight: bold; border-radius: 4px; }
+        .called { background: #4ee44e !important; color: white !important; }
+        .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
+
+        .history-grid { 
+            display: grid; grid-template-columns: repeat(15, 1fr); gap: 2px; 
+            width: 95%; margin: 20px auto; background: #0c121c; padding: 5px; border-radius: 5px;
+        }
+        .h-box { background: #222; font-size: 9px; padding: 4px 0; border: 0.1px solid #444; }
+        .h-called { background: #4ee44e; color: black; font-weight: bold; }
         
-        .back-btn { background: #4ee44e; border: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; font-size: 18px; margin-top: 20px; cursor: pointer; }
+        .leave-btn { background: #ff4d4d; border: none; padding: 10px 30px; border-radius: 5px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -42,70 +51,125 @@
         <div class="selection-grid" id="num-grid"></div>
     </div>
 
-    <div id="card-view">
-        <div class="card-header">የእርስዎ ካርቴላ № <span id="card-no"></span></div>
+    <div id="game-view">
+        <div style="display:flex; justify-content: space-around; font-size:14px; padding:10px; color:#fee715;">
+            <span>Players: 400</span><span>Bet: 10</span><span>Derash: 3200</span>
+        </div>
+        <div class="ball-display" id="current-ball">-</div>
+        <div class="status-text" id="status">በመዘጋጀት ላይ...</div>
+        
         <table class="bingo-table">
-            <thead>
-                <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
-            </thead>
+            <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
             <tbody id="bingo-body"></tbody>
         </table>
-        <button class="back-btn" onclick="goBack()">ተመለስ</button>
+
+        <div class="history-grid" id="history"></div>
+        <button class="leave-btn" onclick="location.reload()">Leave</button>
     </div>
 
     <script>
-        // 200 ቁጥሮችን መፍጠር
+        let calledNumbers = [];
+        let myCard = [];
+        let gameStarted = false;
+
+        // ቁጥር መምረጫ
         const grid = document.getElementById('num-grid');
         for (let i = 1; i <= 200; i++) {
             const btn = document.createElement('button');
-            btn.className = 'num-btn';
-            btn.innerText = i;
-            btn.onclick = () => openCard(i);
+            btn.className = 'num-btn'; btn.innerText = i;
+            btn.onclick = () => startGame(i);
             grid.appendChild(btn);
         }
 
-        function openCard(n) {
+        function startGame(n) {
             document.getElementById('selector-view').style.display = 'none';
-            document.getElementById('card-view').style.display = 'block';
-            document.getElementById('card-no').innerText = n;
+            document.getElementById('game-view').style.display = 'block';
             createCard();
+            createHistory();
+            startCountdown(30);
+        }
+
+        function startCountdown(seconds) {
+            let timer = seconds;
+            let interval = setInterval(() => {
+                document.getElementById('status').innerText = `ጨዋታው በ ${timer} ሰከንድ ይጀምራል...`;
+                if (timer <= 0) {
+                    clearInterval(interval);
+                    document.getElementById('status').innerText = `ጨዋታው ተጀምሯል!`;
+                    beginCalling();
+                }
+                timer--;
+            }, 1000);
+        }
+
+        function beginCalling() {
+            let allNums = Array.from({length: 75}, (_, i) => i + 1);
+            allNums.sort(() => Math.random() - 0.5);
+
+            let i = 0;
+            let callInterval = setInterval(() => {
+                if (i >= 75) { clearInterval(callInterval); return; }
+                
+                let num = allNums[i];
+                let letter = getLetter(num);
+                let ballText = `${letter}-${num}`;
+                
+                document.getElementById('current-ball').innerText = ballText;
+                calledNumbers.push(num);
+                updateUI(num);
+                i++;
+            }, 5000);
+        }
+
+        function getLetter(n) {
+            if (n <= 15) return 'B'; if (n <= 30) return 'I';
+            if (n <= 45) return 'N'; if (n <= 60) return 'G';
+            return 'O';
         }
 
         function createCard() {
             const tbody = document.getElementById('bingo-body');
-            tbody.innerHTML = ""; // የቆየውን ማጽዳት
-            
-            // የቢንጎ ቁጥሮችን በየአምዱ ማዘጋጀት
+            tbody.innerHTML = "";
             let columns = [];
             for (let i = 0; i < 5; i++) {
                 let start = (i * 15) + 1;
-                let end = start + 14;
-                let pool = [];
-                for (let x = start; x <= end; x++) pool.push(x);
-                pool.sort(() => Math.random() - 0.5);
+                let pool = Array.from({length: 15}, (_, j) => start + j).sort(() => Math.random() - 0.5);
                 columns.push(pool.slice(0, 5));
             }
-
-            // ሰንጠረዡን መገንባት
+            myCard = columns;
             for (let r = 0; r < 5; r++) {
-                let row = document.createElement('tr');
+                let tr = document.createElement('tr');
                 for (let c = 0; c < 5; c++) {
-                    let cell = document.createElement('td');
-                    if (r === 2 && c === 2) {
-                        cell.innerText = "FREE";
-                        cell.className = "free-slot";
-                    } else {
-                        cell.innerText = columns[c][r];
-                    }
-                    row.appendChild(cell);
+                    let td = document.createElement('td');
+                    td.id = `cell-${c}-${r}`;
+                    if (r === 2 && c === 2) { td.innerText = "FREE"; td.className = "free-slot"; }
+                    else { td.innerText = columns[c][r]; }
+                    tr.appendChild(td);
                 }
-                tbody.appendChild(row);
+                tbody.appendChild(tr);
             }
         }
 
-        function goBack() {
-            document.getElementById('card-view').style.display = 'none';
-            document.getElementById('selector-view').style.display = 'block';
+        function createHistory() {
+            const hist = document.getElementById('history');
+            for (let i = 1; i <= 75; i++) {
+                let div = document.createElement('div');
+                div.className = 'h-box'; div.id = `hist-${i}`; div.innerText = i;
+                hist.appendChild(div);
+            }
+        }
+
+        function updateUI(num) {
+            // በካርቴላው ላይ ካለ አረንጓዴ ማድረግ
+            for(let c=0; c<5; c++) {
+                for(let r=0; r<5; r++) {
+                    if(myCard[c][r] === num) {
+                        document.getElementById(`cell-${c}-${r}`).classList.add('called');
+                    }
+                }
+            }
+            // በታችኛው ዝርዝር ላይ ማድመቅ
+            document.getElementById(`hist-${num}`).classList.add('h-called');
         }
     </script>
 </body>
