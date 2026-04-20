@@ -3,50 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Pro</title>
+    <title>Baruda Bingo Professional</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #101820; --accent: #fee715; --card: #ffffff; --win: #4ee44e; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; user-select: none; }
-        .stats-bar { display: flex; justify-content: space-around; background: #1a222d; padding: 12px; font-size: 14px; border-bottom: 2px solid #2a3441; }
-        .stats-bar b { color: var(--accent); font-size: 18px; }
-        .main-display { margin: 20px auto; width: 120px; height: 120px; border: 6px solid var(--win); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); box-shadow: 0 0 15px rgba(78, 228, 78, 0.3); }
-        .current-ball { font-size: 40px; font-weight: 900; color: var(--win); }
-        .bingo-grid { width: 95%; max-width: 400px; margin: 10px auto; border-collapse: separate; border-spacing: 5px; }
-        .bingo-grid th { background: #e94560; color: white; padding: 10px; border-radius: 5px; font-size: 20px; }
-        .bingo-grid td { background: var(--card); color: #000; height: 60px; border-radius: 5px; font-size: 24px; font-weight: bold; width: 20%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); transition: 0.3s; }
-        .marked { background: var(--win) !important; color: white !important; transform: scale(0.95); box-shadow: 0 0 10px var(--win) !important; }
-        .status-msg { color: var(--accent); font-weight: bold; margin: 15px; font-size: 18px; height: 25px; }
-        #win-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 9999; }
-        .win-content { background: #e94560; padding: 40px; border-radius: 25px; border: 5px solid white; animation: pop 0.5s ease-out; }
-        @keyframes pop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
-        .btn-restart { padding: 15px 30px; border-radius: 12px; border: none; background: white; color: #e94560; font-weight: bold; font-size: 20px; cursor: pointer; margin-top: 20px; }
-        .hidden { display: none; }
+        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; overflow: hidden; }
+        .stats-bar { display: flex; justify-content: space-around; background: #1a222d; padding: 10px; font-size: 14px; border-bottom: 2px solid #2a3441; }
+        .stats-bar b { color: var(--accent); font-size: 16px; }
+        .main-display { margin: 15px auto; width: 100px; height: 100px; border: 5px solid var(--win); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); }
+        .current-ball { font-size: 35px; font-weight: bold; color: var(--win); }
+        .bingo-grid { width: 95%; max-width: 380px; margin: 5px auto; border-collapse: separate; border-spacing: 4px; }
+        .bingo-grid th { background: #e94560; color: white; padding: 8px; border-radius: 4px; }
+        .bingo-grid td { background: var(--card); color: #000; height: 55px; border-radius: 4px; font-size: 22px; font-weight: bold; width: 20%; cursor: pointer; }
+        .marked { background: var(--win) !important; color: white !important; }
+        #game-status { color: var(--accent); font-weight: bold; margin: 10px; }
+        #win-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .win-box { background: #e94560; padding: 30px; border-radius: 20px; border: 4px solid white; }
     </style>
 </head>
 <body>
 
     <div class="stats-bar">
-        <div>Players <b id="p-count">400</b></div>
-        <div>Bet <b id="b-amount">10</b></div>
-        <div>Derash <b id="d-prize">3200</b></div>
+        <div>Players <b>400</b></div>
+        <div>Bet <b>10</b></div>
+        <div>Derash <b>3200</b></div>
     </div>
 
-    <div id="game-view">
-        <div class="main-display"><div class="current-ball" id="ball-display">-</div></div>
-        <div class="status-msg" id="game-status">በመዘጋጀት ላይ...</div>
-        
-        <table class="bingo-grid">
-            <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="card-body"></tbody>
-        </table>
-    </div>
+    <div class="main-display"><div class="current-ball" id="ball-display">-</div></div>
+    <div id="game-status">በመዘጋጀት ላይ...</div>
+    
+    <table class="bingo-grid">
+        <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
+        <tbody id="card-body"></tbody>
+    </table>
 
     <div id="win-modal">
-        <div class="win-content">
-            <h1 style="font-size: 50px; margin: 0;">BINGO! 🎉</h1>
-            <p style="font-size: 20px;">እንኳን ደስ አለህ አሸንፈሃል!</p>
-            <button class="btn-restart" onclick="location.reload()">አዲስ ጨዋታ</button>
+        <div class="win-box">
+            <h1 style="font-size: 40px; margin: 0;">BINGO! 🎉</h1>
+            <p>እንኳን ደስ አለህ አሸንፈሃል!</p>
+            <button onclick="location.reload()" style="padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold;">አዲስ ጨዋታ</button>
         </div>
     </div>
 
@@ -55,43 +50,43 @@
         tg.ready();
         tg.expand();
 
-        let card = [];
-        let calledNumbers = [];
-        let isGameOver = false;
+        let cardData = [];
+        let called = [];
+        let isOver = false;
 
-        function createCard() {
+        function initGame() {
             const body = document.getElementById('card-body');
             body.innerHTML = "";
             let ranges = [,,,,];
             
-            // Generate professional bingo card logic
+            // Generate numbers correctly (No NaN)
             for (let r = 0; r < 5; r++) {
                 let tr = document.createElement('tr');
-                card[r] = [];
+                cardData[r] = [];
                 for (let c = 0; c < 5; c++) {
                     let td = document.createElement('td');
+                    td.id = `c-${r}-${c}`;
                     if (r === 2 && c === 2) {
                         td.innerText = "FREE";
-                        td.classList.add('marked');
-                        card[r][c] = { v: "FREE", m: true };
+                        td.className = "marked";
+                        cardData[r][c] = { v: "FREE", m: true };
                     } else {
                         let val;
                         do {
                             val = Math.floor(Math.random() * (ranges[c] - ranges[c] + 1)) + ranges[c];
-                        } while (card.some(row => row[c] && row[c].v === val));
+                        } while (cardData.some(row => row[c] && row[row.length-1].v === val));
                         
                         td.innerText = val;
-                        td.id = `cell-${r}-${c}`;
-                        card[r][c] = { v: val, m: false };
+                        cardData[r][c] = { v: val, m: false };
                     }
                     tr.appendChild(td);
                 }
                 body.appendChild(tr);
             }
-            startCountdown();
+            startLoop();
         }
 
-        function startCountdown() {
+        function startLoop() {
             let sec = 5;
             const status = document.getElementById('game-status');
             const timer = setInterval(() => {
@@ -99,27 +94,25 @@
                 if (sec-- <= 0) {
                     clearInterval(timer);
                     status.innerText = "ጨዋታው ተጀምሯል!";
-                    setInterval(drawBall, 4000);
+                    setInterval(draw, 4000);
                 }
             }, 1000);
         }
 
-        function drawBall() {
-            if (isGameOver || calledNumbers.length >= 75) return;
-            
-            let ball;
-            do { ball = Math.floor(Math.random() * 75) + 1; } while (calledNumbers.includes(ball));
-            calledNumbers.push(ball);
+        function draw() {
+            if (isOver || called.length >= 75) return;
+            let n;
+            do { n = Math.floor(Math.random() * 75) + 1; } while (called.includes(n));
+            called.push(n);
 
-            let label = ball <= 15 ? "B" : ball <= 30 ? "I" : ball <= 45 ? "N" : ball <= 60 ? "G" : "O";
-            document.getElementById('ball-display').innerText = `${label}-${ball}`;
+            let L = n <= 15 ? "B" : n <= 30 ? "I" : n <= 45 ? "N" : n <= 60 ? "G" : "O";
+            document.getElementById('ball-display').innerText = `${L}-${n}`;
 
-            // Check card for matches
             for (let r = 0; r < 5; r++) {
                 for (let c = 0; c < 5; c++) {
-                    if (card[r][c].v === ball) {
-                        card[r][c].m = true;
-                        document.getElementById(`cell-${r}-${c}`).classList.add('marked');
+                    if (cardData[r][c].v === n) {
+                        cardData[r][c].m = true;
+                        document.getElementById(`c-${r}-${c}`).classList.add('marked');
                         checkWin();
                     }
                 }
@@ -127,21 +120,21 @@
         }
 
         function checkWin() {
-            // Horizontal & Vertical
             for (let i = 0; i < 5; i++) {
-                if (card[i].every(cell => cell.m) || card.every(row => row[i].m)) return announceWin();
+                // Rows, Columns, and Diagonals check
+                if (cardData[i].every(cl => cl.m) || cardData.every(rw => rw[i].m)) return win();
             }
-            // Diagonals
-            if (.every(i => card[i][i].m) ||.every(i => card[i][4-i].m)) return announceWin();
+            if (.every(i => cardData[i][i].m) ||.every(i => cardData[i][4-i].m)) return win();
         }
 
-        function announceWin() {
-            isGameOver = true;
+        function win() {
+            isOver = true;
             document.getElementById('win-modal').style.display = 'flex';
             tg.HapticFeedback.notificationOccurred('success');
         }
 
-        window.onload = createCard;
+        // ገጹ እንደተከፈተ ስራ እንዲጀምር በግልጽ ማዘዝ
+        window.addEventListener('load', initGame);
     </script>
 </body>
 </html>
