@@ -1,93 +1,67 @@
 <!DOCTYPE html>
-<html lang="am">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baruda Bingo - Clean</title>
+    <title>Bingo</title>
     <style>
-        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 15px; }
-        .title { color: #4ee44e; font-size: 28px; font-weight: bold; margin-bottom: 10px; }
-        
-        /* ቁጥር መምረጫ */
-        #selector-page { display: block; }
-        .grid { 
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
-            max-width: 400px; margin: 0 auto; background: #0c121c; 
-            padding: 15px; border-radius: 12px; border: 2px solid #4ee44e;
-            max-height: 500px; overflow-y: auto;
-        }
-        .num-btn { background: #e94560; color: white; border: none; padding: 12px 0; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
-        /* ካርቴላ */
-        #card-page { display: none; }
-        .bingo-table { width: 100%; max-width: 360px; margin: 20px auto; border-collapse: separate; border-spacing: 5px; }
-        .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 5px; }
-        .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 5px; width: 20%; }
-        
-        .free { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
-        .back-btn { background: #ff4d4d; border: none; padding: 15px 40px; border-radius: 10px; color: white; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 10px; max-height: 400px; overflow-y: auto; border: 2px solid #4ee44e; margin: 10px; }
+        button { background: #e94560; color: white; border: none; padding: 10px; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; background: white; color: black; margin-top: 20px; }
+        td, th { border: 1px solid #ccc; height: 50px; font-size: 20px; width: 20%; }
+        th { background: #e94560; color: white; }
     </style>
 </head>
 <body>
-
-    <div id="selector-page">
-        <div class="title">Baruda Bingo</div>
-        <p>ካርቴላ ቁጥር ይምረጡ (1-200)</p>
-        <div class="grid" id="grid"></div>
+    <div id="p1">
+        <h3>ካርቴላ ይምረጡ (1-200)</h3>
+        <div class="grid" id="g"></div>
     </div>
-
-    <div id="card-page">
-        <div style="color: #4ee44e; font-size: 22px; margin-bottom: 15px;">ካርቴላ № <span id="card-id"></span></div>
-        <table class="bingo-table">
+    <div id="p2" style="display:none">
+        <h3 id="cid"></h3>
+        <table>
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="card-body"></tbody>
+            <tbody id="tb"></tbody>
         </table>
-        <button class="back-btn" onclick="location.reload()">ተመለስ</button>
+        <br>
+        <button onclick="location.reload()" style="background:red; padding: 15px 40px;">ተመለስ</button>
     </div>
-
     <script>
-        // 1-200 ቁልፎችን መፍጠር
-        const grid = document.getElementById('grid');
-        for (let i = 1; i <= 200; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'num-btn';
-            btn.innerText = i;
-            btn.onclick = () => {
-                document.getElementById('selector-page').style.display = 'none';
-                document.getElementById('card-page').style.display = 'block';
-                document.getElementById('card-id').innerText = i;
-                generateBingoLayout();
+        const g = document.getElementById('g');
+        for(let i=1; i<=200; i++) {
+            let b = document.createElement('button');
+            b.innerText = i;
+            b.onclick = () => {
+                document.getElementById('p1').style.display='none';
+                document.getElementById('p2').style.display='block';
+                document.getElementById('cid').innerText = 'ካርቴላ № ' + i;
+                make();
             };
-            grid.appendChild(btn);
+            g.appendChild(b);
         }
-
-        function generateBingoLayout() {
-            const tbody = document.getElementById('card-body');
-            tbody.innerHTML = "";
-            
-            let card = [[],[],[],[],[]];
-            let ranges = [,,,,];
-            
-            for(let c=0; c<5; c++) {
-                while(card[c].length < 5) {
-                    let r = Math.floor(Math.random() * (ranges[c] - ranges[c] + 1)) + ranges[c];
-                    if(!card[c].includes(r)) card[c].push(r);
+        function make() {
+            const tb = document.getElementById('tb');
+            tb.innerHTML = "";
+            let rgs = [,,,,];
+            let cld = [];
+            for(let i=0; i<5; i++) {
+                let col = [];
+                while(col.length<5) {
+                    let r = Math.floor(Math.random()*(rgs[i]-rgs[i]+1))+rgs[i];
+                    if(!col.includes(r)) col.push(r);
                 }
+                cld.push(col);
             }
-
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr');
                 for(let c=0; c<5; c++) {
                     let td = document.createElement('td');
-                    if(r===2 && c===2) {
-                        td.innerText = "FREE";
-                        td.className = "free";
-                    } else {
-                        td.innerText = card[c][r];
-                    }
+                    td.innerText = (r==2 && c==2) ? "FREE" : cld[c][r];
+                    if(r==2 && c==2) td.style.background="#4ee44e";
                     tr.appendChild(td);
                 }
-                tbody.appendChild(tr);
+                tb.appendChild(tr);
             }
         }
     </script>
