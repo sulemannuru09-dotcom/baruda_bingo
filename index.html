@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo 1-100</title>
+    <title>Baruda Bingo - 30 Sec Timer</title>
     <style>
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* ቁጥር መምረጫ ገጽ */
+        /* ቁጥር መምረጫ */
         #selector-page { display: block; }
         .selection-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
@@ -18,7 +18,15 @@
         }
         .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 3px #c23950; }
 
-        /* ካርቴላ ማሳያ ገጽ */
+        /* የቆጠራ ገጽ */
+        #timer-page { display: none; margin-top: 50px; }
+        .timer-circle { 
+            width: 120px; height: 120px; border: 6px solid #4ee44e; border-radius: 50%; 
+            margin: 20px auto; display: flex; align-items: center; justify-content: center; 
+            font-size: 40px; font-weight: bold; color: #fee715;
+        }
+
+        /* ካርቴላ ማሳያ */
         #card-page { display: none; margin-top: 10px; }
         .card-header { color: #fee715; font-size: 20px; font-weight: bold; margin-bottom: 15px; }
         .bingo-table { width: 100%; max-width: 360px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
@@ -37,6 +45,12 @@
         <div class="selection-grid" id="grid"></div>
     </div>
 
+    <div id="timer-page">
+        <div class="title">ጨዋታው እየተዘጋጀ ነው...</div>
+        <div class="timer-circle" id="countdown">30</div>
+        <p id="timer-msg">እባክዎ ይጠብቁ</p>
+    </div>
+
     <div id="card-page">
         <div class="card-header">የእርስዎ ካርቴላ № <span id="card-num-display"></span></div>
         <table class="bingo-table">
@@ -49,50 +63,62 @@
     </div>
 
     <script>
-        // 1. መጀመሪያ 100 ቁልፎችን መፍጠር
+        // ቁልፎችን መፍጠር
         const grid = document.getElementById('grid');
-        let buttonsHtml = "";
         for (let i = 1; i <= 100; i++) {
-            buttonsHtml += `<button class="num-btn" onclick="showCard(${i})">${i}</button>`;
+            const btn = document.createElement('button');
+            btn.className = 'num-btn';
+            btn.innerText = i;
+            btn.onclick = () => startTimer(i);
+            grid.appendChild(btn);
         }
-        grid.innerHTML = buttonsHtml;
 
-        // 2. ቁጥር ሲነካ ካርቴላውን የሚያሳይ ተግባር
-        function showCard(cardNumber) {
+        let timerInterval;
+
+        function startTimer(cardNumber) {
+            // መምረጫውን ደብቅ፣ ቆጠራውን አሳይ
             document.getElementById('selector-page').style.display = 'none';
+            document.getElementById('timer-page').style.display = 'block';
+            
+            let timeLeft = 30;
+            const timerDisplay = document.getElementById('countdown');
+            timerDisplay.innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showCard(cardNumber);
+                }
+            }, 1000);
+        }
+
+        function showCard(cardNumber) {
+            document.getElementById('timer-page').style.display = 'none';
             document.getElementById('card-page').style.display = 'block';
             document.getElementById('card-num-display').innerText = cardNumber;
             
             const tbody = document.getElementById('card-content');
-            tbody.innerHTML = ""; // መጀመሪያ ባዶ ማድረግ
+            tbody.innerHTML = "";
 
-            // ለእያንዳንዱ አምድ (B, I, N, G, O) ቁጥሮችን ማዘጋጀት
             const ranges = [
-                {min: 1, max: 15},  // B
-                {min: 16, max: 30}, // I
-                {min: 31, max: 45}, // N
-                {min: 46, max: 60}, // G
-                {min: 61, max: 75}  // O
+                {min: 1, max: 15}, {min: 16, max: 30}, {min: 31, max: 45}, 
+                {min: 46, max: 60}, {min: 61, max: 75}
             ];
 
             let cardMatrix = [];
-
-            // ለእያንዳንዱ አምድ 5 የዘፈቀደ ቁጥሮችን መምረጥ
             for (let i = 0; i < 5; i++) {
-                let columnNumbers = [];
-                let min = ranges[i].min;
-                let max = ranges[i].max;
-                
-                while (columnNumbers.length < 5) {
+                let col = [];
+                let min = ranges[i].min, max = ranges[i].max;
+                while (col.length < 5) {
                     let num = Math.floor(Math.random() * (max - min + 1)) + min;
-                    if (!columnNumbers.includes(num)) {
-                        columnNumbers.push(num);
-                    }
+                    if (!col.includes(num)) col.push(num);
                 }
-                cardMatrix.push(columnNumbers);
+                cardMatrix.push(col);
             }
 
-            // ሰንጠረዡን በ rows መገንባት
             for (let r = 0; r < 5; r++) {
                 let tr = document.createElement('tr');
                 for (let c = 0; c < 5; c++) {
@@ -110,7 +136,9 @@
         }
 
         function goBack() {
+            clearInterval(timerInterval);
             document.getElementById('card-page').style.display = 'none';
+            document.getElementById('timer-page').style.display = 'none';
             document.getElementById('selector-page').style.display = 'block';
         }
     </script>
