@@ -8,7 +8,7 @@
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* ቁጥር መምረጫ */
+        /* ቁጥር መምረጫ ገጽ */
         #selector-page { display: block; }
         .selection-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
@@ -18,15 +18,15 @@
         }
         .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 3px #c23950; }
 
-        /* ካርቴላ ማሳያ */
+        /* ካርቴላ ማሳያ ገጽ */
         #card-page { display: none; margin-top: 10px; }
         .card-header { color: #fee715; font-size: 20px; font-weight: bold; margin-bottom: 15px; }
         .bingo-table { width: 100%; max-width: 360px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
         .bingo-table th { background: #e94560; color: white; padding: 12px; border-radius: 4px; font-size: 18px; }
-        .bingo-table td { background: white; color: black; height: 50px; font-size: 22px; font-weight: bold; border-radius: 4px; width: 20%; }
+        .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 4px; width: 20%; }
         .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
         
-        .back-btn { background: #4ee44e; border: none; padding: 12px 40px; border-radius: 8px; color: #161e30; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 16px; }
+        .back-btn { background: #4ee44e; border: none; padding: 12px 40px; border-radius: 8px; color: #161e30; font-weight: bold; margin-top: 25px; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -49,51 +49,63 @@
     </div>
 
     <script>
-        // 100 ቁጥሮችን መፍጠር
+        // 1. መጀመሪያ 100 ቁልፎችን መፍጠር
         const grid = document.getElementById('grid');
+        let buttonsHtml = "";
         for (let i = 1; i <= 100; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'num-btn';
-            btn.innerText = i;
-            btn.onclick = () => showCard(i);
-            grid.appendChild(btn);
+            buttonsHtml += `<button class="num-btn" onclick="showCard(${i})">${i}</button>`;
         }
+        grid.innerHTML = buttonsHtml;
 
-        function showCard(n) {
+        // 2. ቁጥር ሲነካ ካርቴላውን የሚያሳይ ተግባር
+        function showCard(cardNumber) {
             document.getElementById('selector-page').style.display = 'none';
             document.getElementById('card-page').style.display = 'block';
-            document.getElementById('card-num-display').innerText = n;
+            document.getElementById('card-num-display').innerText = cardNumber;
             
             const tbody = document.getElementById('card-content');
-            tbody.innerHTML = ""; // ማጽዳት
-            
-            // የቢንጎ ቁጥሮችን ማመንጫ (1-75)
-            let columns = [];
-            let ranges = [,,,,];
-            
+            tbody.innerHTML = ""; // መጀመሪያ ባዶ ማድረግ
+
+            // ለእያንዳንዱ አምድ (B, I, N, G, O) ቁጥሮችን ማዘጋጀት
+            const ranges = [
+                {min: 1, max: 15},  // B
+                {min: 16, max: 30}, // I
+                {min: 31, max: 45}, // N
+                {min: 46, max: 60}, // G
+                {min: 61, max: 75}  // O
+            ];
+
+            let cardMatrix = [];
+
+            // ለእያንዳንዱ አምድ 5 የዘፈቀደ ቁጥሮችን መምረጥ
             for (let i = 0; i < 5; i++) {
-                let pool = [];
-                for (let x = ranges[i]; x <= ranges[i]; x++) pool.push(x);
-                // በዘፈቀደ መቀላቀል
-                pool.sort(() => Math.random() - 0.5);
-                columns.push(pool.slice(0, 5));
+                let columnNumbers = [];
+                let min = ranges[i].min;
+                let max = ranges[i].max;
+                
+                while (columnNumbers.length < 5) {
+                    let num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    if (!columnNumbers.includes(num)) {
+                        columnNumbers.push(num);
+                    }
+                }
+                cardMatrix.push(columnNumbers);
             }
 
-            // ሰንጠረዡን መሥራት
+            // ሰንጠረዡን በ rows መገንባት
             for (let r = 0; r < 5; r++) {
-                let row = document.createElement('tr');
+                let tr = document.createElement('tr');
                 for (let c = 0; c < 5; c++) {
-                    let cell = document.createElement('td');
+                    let td = document.createElement('td');
                     if (r === 2 && c === 2) {
-                        cell.innerText = "FREE";
-                        cell.className = "free-slot";
+                        td.innerText = "FREE";
+                        td.className = "free-slot";
                     } else {
-                        // ቁጥሩ መኖሩን ማረጋገጥ (undefined እንዳይመጣ)
-                        cell.innerText = columns[c][r] || ""; 
+                        td.innerText = cardMatrix[c][r];
                     }
-                    row.appendChild(cell);
+                    tr.appendChild(td);
                 }
-                tbody.appendChild(row);
+                tbody.appendChild(tr);
             }
         }
 
