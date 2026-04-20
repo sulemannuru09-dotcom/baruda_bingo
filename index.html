@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo - 30 Sec Timer</title>
+    <title>Baruda Bingo - Game Start</title>
     <style>
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* ቁጥር መምረጫ */
+        /* ገጽ 1: ቁጥር መምረጫ */
         #selector-page { display: block; }
         .selection-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
@@ -18,23 +18,24 @@
         }
         .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 3px #c23950; }
 
-        /* የቆጠራ ገጽ */
+        /* ገጽ 2: የ 30 ሰከንድ ቆጠራ */
         #timer-page { display: none; margin-top: 50px; }
         .timer-circle { 
-            width: 120px; height: 120px; border: 6px solid #4ee44e; border-radius: 50%; 
+            width: 130px; height: 130px; border: 8px solid #4ee44e; border-radius: 50%; 
             margin: 20px auto; display: flex; align-items: center; justify-content: center; 
-            font-size: 40px; font-weight: bold; color: #fee715;
+            font-size: 45px; font-weight: bold; color: #fee715; box-shadow: 0 0 15px #4ee44e;
         }
+        .status-text { color: #fee715; font-size: 22px; font-weight: bold; margin-top: 10px; }
 
-        /* ካርቴላ ማሳያ */
-        #card-page { display: none; margin-top: 10px; }
-        .card-header { color: #fee715; font-size: 20px; font-weight: bold; margin-bottom: 15px; }
+        /* ገጽ 3: ካርቴላ ማሳያ */
+        #card-page { display: none; margin-top: 5px; }
+        .game-status { color: #fee715; font-size: 20px; font-weight: bold; margin-bottom: 10px; }
         .bingo-table { width: 100%; max-width: 360px; margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
         .bingo-table th { background: #e94560; color: white; padding: 12px; border-radius: 4px; font-size: 18px; }
         .bingo-table td { background: white; color: black; height: 55px; font-size: 24px; font-weight: bold; border-radius: 4px; width: 20%; }
         .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
         
-        .back-btn { background: #4ee44e; border: none; padding: 12px 40px; border-radius: 8px; color: #161e30; font-weight: bold; margin-top: 25px; cursor: pointer; font-size: 18px; }
+        .back-btn { background: #ff4d4d; border: none; padding: 12px 40px; border-radius: 8px; color: white; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -46,37 +47,38 @@
     </div>
 
     <div id="timer-page">
-        <div class="title">ጨዋታው እየተዘጋጀ ነው...</div>
+        <div class="status-text">ጨዋታው ሊጀምር ነው...</div>
         <div class="timer-circle" id="countdown">30</div>
-        <p id="timer-msg">እባክዎ ይጠብቁ</p>
+        <p>እባክዎ ዝግጁ ይሁኑ!</p>
     </div>
 
     <div id="card-page">
-        <div class="card-header">የእርስዎ ካርቴላ № <span id="card-num-display"></span></div>
+        <div class="game-status">ጨዋታው ተጀምሯል!</div>
+        <div style="color: #4ee44e; margin-bottom: 10px;">የእርስዎ ካርቴላ № <span id="card-num-display"></span></div>
         <table class="bingo-table">
             <thead>
                 <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
             </thead>
             <tbody id="card-content"></tbody>
         </table>
-        <button class="back-btn" onclick="goBack()">ተመለስ</button>
+        <button class="back-btn" onclick="goBack()">ውጣ (Leave)</button>
     </div>
 
     <script>
-        // ቁልፎችን መፍጠር
+        // 100 ቁጥሮችን መፍጠር
         const grid = document.getElementById('grid');
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
             btn.className = 'num-btn';
             btn.innerText = i;
-            btn.onclick = () => startTimer(i);
+            btn.onclick = () => startSequence(i);
             grid.appendChild(btn);
         }
 
         let timerInterval;
 
-        function startTimer(cardNumber) {
-            // መምረጫውን ደብቅ፣ ቆጠራውን አሳይ
+        function startSequence(cardNumber) {
+            // 1. መጀመሪያ ወደ ቆጠራ ገጽ ግባ
             document.getElementById('selector-page').style.display = 'none';
             document.getElementById('timer-page').style.display = 'block';
             
@@ -84,18 +86,20 @@
             const timerDisplay = document.getElementById('countdown');
             timerDisplay.innerText = timeLeft;
 
+            // 2. ቆጠራውን ጀምር
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerDisplay.innerText = timeLeft;
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    showCard(cardNumber);
+                    // 3. ቆጠራው ሲያልቅ ጨዋታውን በራሱ አስጀምር
+                    launchGame(cardNumber);
                 }
             }, 1000);
         }
 
-        function showCard(cardNumber) {
+        function launchGame(cardNumber) {
             document.getElementById('timer-page').style.display = 'none';
             document.getElementById('card-page').style.display = 'block';
             document.getElementById('card-num-display').innerText = cardNumber;
