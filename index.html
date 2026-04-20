@@ -3,29 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Final</title>
+    <title>Dawi Bingo Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; overflow: hidden; }
         .header-info { display: flex; justify-content: space-around; background: #0b132b; padding: 10px 0; font-size: 12px; border-bottom: 1px solid #3a506b; }
         .header-info b { font-size: 16px; color: #ffffff; }
         .circle-container { margin: 15px auto; width: 110px; height: 110px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); }
-        .called-num { font-size: 36px; font-weight: bold; color: #4ee44e; }
+        .called-num { font-size: 38px; font-weight: bold; color: #4ee44e; }
         .bingo-table { width: 95%; max-width: 380px; margin: 5px auto; border-collapse: separate; border-spacing: 3px; }
-        .bingo-table th { background: #e94560; color: white; padding: 12px 0; border-radius: 4px; font-size: 18px; width: 20%; }
-        .bingo-table td { background: #ffffff; color: #000000; height: 50px; border-radius: 4px; font-size: 22px; font-weight: bold; transition: 0.3s; }
+        .bingo-table th { background: #e94560; color: white; padding: 10px 0; border-radius: 4px; font-size: 18px; }
+        .bingo-table td { background: #ffffff; color: #000000; height: 50px; border-radius: 4px; font-size: 22px; font-weight: bold; width: 20%; }
         .marked { background: #4ee44e !important; color: white !important; }
         .hidden { display: none !important; }
-        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; max-height: 80vh; overflow-y: auto; }
         .btn-select { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; }
         #timer-display { font-size: 22px; color: #f1c40f; margin: 10px; font-weight: bold; }
-        #win-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #e94560; padding: 30px; border-radius: 15px; font-size: 30px; font-weight: bold; z-index: 100; border: 5px solid white; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        #win-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(233, 69, 96, 0.9); display: flex; align-items: center; justify-content: center; flex-direction: column; z-index: 1000; }
+        .win-box { font-size: 50px; font-weight: bold; color: white; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
     <div id="scr1">
-        <h2 style="margin-top:30px;">Dawi Bingo</h2>
+        <h2 style="margin-top:20px;">Dawi Bingo</h2>
         <p>ካርቴላ ይምረጡ</p>
         <div class="sel-grid" id="grid"></div>
     </div>
@@ -45,117 +46,83 @@
         </table>
     </div>
 
-    <div id="win-msg" class="hidden">BINGO!<br>አሸናፊ ነህ! 🎉</div>
+    <div id="win-overlay" class="hidden">
+        <div class="win-box">BINGO! 🎉</div>
+        <p style="font-size:24px;">አሸናፊ ነህ!</p>
+        <button onclick="location.reload()" style="padding:10px 20px; border-radius:10px; border:none; background:white; color:#e94560; font-weight:bold;">እንደገና ጀምር</button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-        const g = document.getElementById('grid');
-        let cardData = []; 
-        let called = [];
-        let isGameOver = false;
+        let cardData = []; let called = []; let isGameOver = false;
 
-        for(let i=1; i<=25; i++) {
+        // 100 ቁጥሮችን መፍጠር
+        for(let i=1; i<=100; i++) {
             let b = document.createElement('button'); b.className='btn-select'; b.innerText=i;
-            b.onclick = function() {
-                document.getElementById('scr1').classList.add('hidden');
-                document.getElementById('scr2').classList.remove('hidden');
-                startBingoProcess();
-            }; g.appendChild(b);
+            b.onclick = () => { document.getElementById('scr1').classList.add('hidden'); document.getElementById('scr2').classList.remove('hidden'); startGame(); };
+            document.getElementById('grid').appendChild(b);
         }
 
-        function startBingoProcess() {
-            const body = document.getElementById('card-body');
-            body.innerHTML = "";
-            cardData = [];
+        function startGame() {
+            const body = document.getElementById('card-body'); body.innerHTML = ""; cardData = [];
+            let ranges = [,,,,];
             
             for(let r=0; r<5; r++) {
-                let tr = document.createElement('tr');
-                let rowData = [];
+                let tr = document.createElement('tr'); let row = [];
                 for(let c=0; c<5; c++) {
                     let td = document.createElement('td');
                     if(r===2 && c===2) {
-                        td.innerText = "FREE"; td.className = "marked";
-                        rowData.push({val: "FREE", marked: true});
+                        td.innerText="FREE"; td.className="marked"; row.push({v:"FREE", m:true});
                     } else {
-                        let min = (c * 15) + 1;
-                        let max = (c + 1) * 15;
-                        let val = Math.floor(Math.random() * (max - min + 1)) + min;
-                        td.innerText = val; 
-                        td.id = "r" + r + "c" + c;
-                        rowData.push({val: val, marked: false});
+                        let v; do { v = Math.floor(Math.random()*(ranges[c]-ranges[c]+1))+ranges[c]; } 
+                        while(row.some(x => x.v === v) || cardData.some(r => r[c] && r[c].v === v));
+                        td.innerText=v; td.id="r"+r+"c"+c; row.push({v:v, m:false});
                     }
                     tr.appendChild(td);
-                }
-                cardData.push(rowData);
-                body.appendChild(tr);
+                } cardData.push(row); body.appendChild(tr);
             }
 
-            let seconds = 30;
+            let time = 30;
             const tEl = document.getElementById('timer-display');
-            const countdown = setInterval(function() {
-                tEl.innerText = "ጨዋታው ለመጀመር " + seconds + " ሴኮንድ ይቀራል";
-                seconds--;
-                if(seconds < 0) {
-                    clearInterval(countdown);
-                    tEl.classList.add('hidden');
-                    document.getElementById('stat-text').innerText = "ጨዋታው ተጀምሯል!";
-                    setInterval(callNextNumber, 4000);
-                }
+            const cd = setInterval(() => {
+                tEl.innerText = "ጨዋታው ለመጀመር " + time + " ይቀራል";
+                if(time-- <= 0) { clearInterval(cd); tEl.classList.add('hidden'); setInterval(draw, 4000); }
             }, 1000);
         }
 
-        function callNextNumber() {
+        function draw() {
             if(isGameOver || called.length >= 75) return;
-            let n; 
-            do { n = Math.floor(Math.random() * 75) + 1; } while(called.indexOf(n) !== -1);
+            let n; do { n = Math.floor(Math.random()*75)+1; } while(called.includes(n));
             called.push(n);
-
             let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
             document.getElementById('big-n').innerText = L + "-" + n;
+            document.getElementById('stat-text').innerText = L + " " + n + " ተጠርቷል!";
 
-            // ካርቴላው ላይ ምልክት ማድረግ
             for(let r=0; r<5; r++) {
                 for(let c=0; c<5; c++) {
-                    if(cardData[r][c].val === n) {
-                        cardData[r][c].marked = true;
-                        let el = document.getElementById("r" + r + "c" + c);
-                        if(el) el.classList.add('marked');
-                        checkWinner();
+                    if(cardData[r][c].v === n) {
+                        cardData[r][c].m = true;
+                        document.getElementById("r"+r+"c"+c).classList.add('marked');
+                        checkWin();
                     }
                 }
             }
         }
 
-        function checkWinner() {
-            // 1. አግድም (Horizontal)
-            for(let r=0; r<5; r++) {
-                if(cardData[r].every(cell => cell.marked)) return declareWinner();
-            }
-            // 2. ቁልቁል (Vertical)
-            for(let c=0; c<5; c++) {
-                let colMarked = true;
-                for(let r=0; r<5; r++) { if(!cardData[r][c].marked) colMarked = false; }
-                if(colMarked) return declareWinner();
-            }
-            // 3. ዲያጎናል (Diagonal)
-            let d1 = true, d2 = true;
+        function checkWin() {
+            // Horizontal & Vertical
             for(let i=0; i<5; i++) {
-                if(!cardData[i][i].marked) d1 = false;
-                if(!cardData[i][4-i].marked) d2 = false;
+                if(cardData[i].every(x => x.m)) return showWin();
+                if(.every(r => cardData[r][i].m)) return showWin();
             }
-            if(d1 || d2) return declareWinner();
-
-            // 4. አራቱ ማዕዘን (Four Corners)
-            if(cardData.marked && cardData.marked && cardData.marked && cardData.marked) {
-                return declareWinner();
-            }
+            // Diagonals
+            if(.every(i => cardData[i][i].m)) return showWin();
+            if(.every(i => cardData[i][4-i].m)) return showWin();
+            // Corners
+            if(cardData.m && cardData.m && cardData.m && cardData.m) return showWin();
         }
 
-        function declareWinner() {
-            isGameOver = true;
-            document.getElementById('win-msg').classList.remove('hidden');
-            tg.HapticFeedback.notificationOccurred('success');
-        }
+        function showWin() { isGameOver = true; document.getElementById('win-overlay').classList.remove('hidden'); tg.HapticFeedback.notificationOccurred('success'); }
     </script>
 </body>
 </html>
