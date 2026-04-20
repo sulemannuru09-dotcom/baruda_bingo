@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo - Simple 100</title>
+    <title>Baruda Bingo - Direct Card</title>
     <style>
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
         .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
         
-        /* ገጽ 1: ቁጥር መምረጫ (1-100 ብቻ) */
+        /* ገጽ 1: ቁጥር መምረጫ (1-100) */
         #selector-page { display: block; }
         .selection-grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
@@ -18,7 +18,7 @@
         }
         .num-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
 
-        /* ገጽ 2: የጨዋታ ገጽ */
+        /* ገጽ 2: የካርቴላ ገጽ */
         #card-page { display: none; }
         .called-ball { 
             width: 100px; height: 100px; border: 6px solid #4ee44e; border-radius: 50%; 
@@ -45,39 +45,36 @@
 
     <div id="card-page">
         <div class="called-ball" id="ball-display">-</div>
-        <div style="color: #4ee44e; margin-bottom: 10px; font-weight: bold;">ካርቴላ № <span id="card-num-label"></span></div>
+        <div style="color: #4ee44e; margin-bottom: 10px; font-weight: bold;">የእርስዎ ካርቴላ № <span id="card-num-label"></span></div>
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
             <tbody id="card-content"></tbody>
         </table>
-        <button class="leave-btn" onclick="location.reload()">ውጣ</button>
+        <button class="leave-btn" onclick="location.reload()">ተመለስ</button>
     </div>
 
     <script>
         let myCardData = [[],[],[],[],[]];
         let gameActive = false;
 
-        // 1-100 ቁጥሮችን ብቻ መፍጠር
+        // 1-100 ቁጥሮችን መፍጠር
         const grid = document.getElementById('grid');
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
             btn.className = 'num-btn';
             btn.innerText = i;
-            btn.onclick = () => startGame(i);
+            btn.onclick = () => {
+                // ቁጥሩ ሲነካ በቀጥታ ጨዋታውን ይጀምራል
+                document.getElementById('selector-page').style.display = 'none';
+                document.getElementById('card-page').style.display = 'block';
+                document.getElementById('card-num-label').innerText = i;
+                setupBingoCard();
+                startCallingNumbers();
+            };
             grid.appendChild(btn);
         }
 
-        function startGame(cardNumber) {
-            // ቆጠራ የለም - በቀጥታ ወደ ጨዋታው
-            document.getElementById('selector-page').style.display = 'none';
-            document.getElementById('card-page').style.display = 'block';
-            document.getElementById('card-num-label').innerText = cardNumber;
-            
-            setupCard();
-            startCalling();
-        }
-
-        function setupCard() {
+        function setupBingoCard() {
             const tbody = document.getElementById('card-content');
             tbody.innerHTML = "";
             myCardData = [[],[],[],[],[]];
@@ -107,19 +104,19 @@
             }
         }
 
-        function startCalling() {
+        function startCallingNumbers() {
             gameActive = true;
             let balls = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
             let idx = 0;
 
-            const loop = () => {
+            const callLoop = () => {
                 if(!gameActive || idx >= 75) return;
 
                 let num = balls[idx];
                 let letter = num<=15?'B':num<=30?'I':num<=45?'N':num<=60?'G':'O';
                 document.getElementById('ball-display').innerText = `${letter}-${num}`;
 
-                // Auto Mark (በራሱ አረንጓዴ እንዲሆን)
+                // Auto Mark: ካርቴላው ላይ ካለ አረንጓዴ ያደርገዋል
                 for(let c=0; c<5; c++) {
                     for(let r=0; r<5; r++) {
                         if(myCardData[c][r] === num) {
@@ -129,9 +126,9 @@
                     }
                 }
                 idx++;
-                setTimeout(loop, 4000); // በየ 4 ሰከንዱ ቁጥር ይቀየራል
+                setTimeout(callLoop, 4000); // በየ 4 ሰከንዱ ይጠራል
             };
-            loop();
+            callLoop();
         }
     </script>
 </body>
