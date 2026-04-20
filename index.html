@@ -1,71 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dawi Bingo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baruda Bingo Pro</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #12182b; color: white; text-align: center; }
-        .hidden { display: none; }
-        table { width: 95%; margin: 20px auto; border-collapse: collapse; background: white; color: black; }
-        td { border: 2px solid #12182b; height: 50px; font-size: 22px; font-weight: bold; width: 20%; }
+        body { font-family: sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; }
+        .header-info { display: flex; justify-content: space-around; background: #0b132b; padding: 10px 0; font-size: 12px; border-bottom: 1px solid #3a506b; }
+        .header-info div { display: flex; flex-direction: column; }
+        .header-info b { font-size: 16px; color: #ffffff; }
+        
+        .circle-container { margin: 20px auto; width: 120px; height: 120px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); }
+        .called-num { font-size: 42px; font-weight: bold; color: #4ee44e; }
+        
+        .status-msg { font-size: 18px; margin: 10px 0; font-weight: bold; }
+        .your-card-title { font-size: 14px; color: #bdc3c7; margin-bottom: 5px; }
+
+        .bingo-table { width: 95%; max-width: 380px; margin: 5px auto; border-collapse: separate; border-spacing: 4px; }
+        .bingo-table th { background: #e94560; color: white; padding: 12px 0; border-radius: 5px; font-size: 18px; width: 20%; }
+        .bingo-table td { background: #ffffff; color: #000000; height: 55px; border-radius: 5px; font-size: 22px; font-weight: bold; }
         .marked { background: #4ee44e !important; color: white !important; }
-        .btn { background: #e94560; color: white; border: none; padding: 15px; margin: 5px; border-radius: 5px; font-weight: bold; width: 60px; }
+
+        .hidden { display: none !important; }
+        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        .btn-select { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
-    <div id="p1">
-        <h2 style="margin-top:20px;">Dawi Bingo</h2>
-        <p>ካርቴላ ለመጀመር አንዱን ቁጥር ይጫኑ</p>
-        <div id="btns"></div>
+    <div id="selection-screen">
+        <h2 style="margin-top:30px;">Dawi Bingo</h2>
+        <p>ካርቴላ ይምረጡ</p>
+        <div class="sel-grid" id="grid-container"></div>
     </div>
 
-    <div id="p2" class="hidden">
-        <h1 id="call" style="font-size: 50px; color: #4ee44e; margin: 20px;">-</h1>
-        <table>
-            <tbody id="card"></tbody>
+    <div id="game-screen" class="hidden">
+        <div class="header-info">
+            <div>Players <b>400</b></div>
+            <div>Bet <b>10</b></div>
+            <div>Derash <b>3200</b></div>
+        </div>
+
+        <div class="circle-container">
+            <div class="called-num" id="big-num">-</div>
+        </div>
+        
+        <div class="status-msg" id="status-text">ዝግጁ...</div>
+        <div class="your-card-title">የእርስዎ ካርቴላ</div>
+
+        <table class="bingo-table">
+            <thead>
+                <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
+            </thead>
+            <tbody id="bingo-card-body"></tbody>
         </table>
-        <p id="msg">ጨዋታው ተጀምሯል...</p>
     </div>
 
     <script>
-        // ቁልፎቹን መፍጠር
-        const btns = document.getElementById('btns');
-        for(let i=1; i<=25; i++) {
-            let b = document.createElement('button');
-            b.className = 'btn'; b.innerText = i;
-            b.onclick = start;
-            btns.appendChild(b);
+        const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+        const grid = document.getElementById('grid-container');
+
+        // ቁጥር መምረጫ
+        for(let i=1; i<=100; i++) {
+            let btn = document.createElement('button');
+            btn.className = 'btn-select'; btn.innerText = i;
+            btn.onclick = () => {
+                document.getElementById('selection-screen').classList.add('hidden');
+                document.getElementById('game-screen').classList.remove('hidden');
+                startBingoGame();
+            };
+            grid.appendChild(btn);
         }
 
-        function start() {
-            document.getElementById('p1').className = 'hidden';
-            document.getElementById('p2').className = '';
+        let calledNumbers = [];
+        function startBingoGame() {
+            const tableBody = document.getElementById('bingo-card-body');
+            let ranges = [,,,,];
             
-            const card = document.getElementById('card');
-            // ሰንጠረዡን መገንባት
-            for(let r=0; r<5; r++) {
-                let row = card.insertRow();
-                for(let c=0; c<5; c++) {
-                    let cell = row.insertCell();
-                    let num = Math.floor(Math.random() * 75) + 1;
-                    if(r==2 && c==2) {
-                        cell.innerText = "FREE";
-                        cell.className = "marked";
-                    } else {
-                        cell.innerText = num;
-                        cell.id = "n" + num;
-                    }
+            let columns = ranges.map(r => {
+                let nums = [];
+                while(nums.length < 5) {
+                    let v = Math.floor(Math.random()*(r-r+1)) + r;
+                    if(!nums.includes(v)) nums.push(v);
                 }
+                return nums;
+            });
+
+            for(let r=0; r<5; r++) {
+                let tr = document.createElement('tr');
+                for(let c=0; c<5; c++) {
+                    let td = document.createElement('td');
+                    let val = columns[c][r];
+                    if(r===2 && c===2) {
+                        td.innerText = "FREE"; td.className = "marked";
+                    } else {
+                        td.innerText = val; td.id = "num-" + val;
+                    }
+                    tr.appendChild(td);
+                }
+                tableBody.appendChild(tr);
             }
-            // ቁጥር መጥራት
-            setInterval(() => {
-                let p = Math.floor(Math.random() * 75) + 1;
-                document.getElementById('call').innerText = p;
-                let el = document.getElementById("n" + p);
-                if(el) el.className = "marked";
-            }, 3000);
+
+            setInterval(drawNumber, 4000);
+        }
+
+        function drawNumber() {
+            if(calledNumbers.length >= 75) return;
+            let n; do { n = Math.floor(Math.random()*75)+1; } while(calledNumbers.includes(n));
+            calledNumbers.push(n);
+
+            let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
+            document.getElementById('big-num').innerText = L + "-" + n;
+            document.getElementById('status-text').innerText = L + " " + n + " ተጠርቷል!";
+
+            let cell = document.getElementById("num-" + n);
+            if(cell) cell.classList.add('marked');
         }
     </script>
 </body>
