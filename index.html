@@ -3,122 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Official</title>
+    <title>Baruda Bingo Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1c2541; color: white; text-align: center; margin: 0; padding: 0; }
-        .header-info { display: flex; justify-content: space-around; background: #0b132b; padding: 10px 0; font-size: 12px; border-bottom: 1px solid #3a506b; }
-        .header-info b { font-size: 16px; color: #ffffff; }
-        .circle { margin: 15px auto; width: 100px; height: 100px; border: 5px solid #4ee44e; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .called-num { font-size: 30px; font-weight: bold; color: #4ee44e; }
-        .bingo-table { width: 95%; max-width: 380px; margin: 5px auto; border-collapse: separate; border-spacing: 3px; }
-        .bingo-table td { background: #ffffff; color: #000000; height: 50px; border-radius: 4px; font-size: 20px; font-weight: bold; width: 20%; }
-        .marked { background: #4ee44e !important; color: white !important; }
-        .hidden { display: none !important; }
-        .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-        .btn-select { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; font-size: 18px; }
+        :root { --bg: #101820; --accent: #fee715; --card: #ffffff; --win: #4ee44e; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; user-select: none; }
+        .stats-bar { display: flex; justify-content: space-around; background: #1a222d; padding: 12px; font-size: 14px; border-bottom: 2px solid #2a3441; }
+        .stats-bar b { color: var(--accent); font-size: 18px; }
+        .main-display { margin: 20px auto; width: 120px; height: 120px; border: 6px solid var(--win); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(78, 228, 78, 0.1); box-shadow: 0 0 15px rgba(78, 228, 78, 0.3); }
+        .current-ball { font-size: 40px; font-weight: 900; color: var(--win); }
+        .bingo-grid { width: 95%; max-width: 400px; margin: 10px auto; border-collapse: separate; border-spacing: 5px; }
+        .bingo-grid th { background: #e94560; color: white; padding: 10px; border-radius: 5px; font-size: 20px; }
+        .bingo-grid td { background: var(--card); color: #000; height: 60px; border-radius: 5px; font-size: 24px; font-weight: bold; width: 20%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); transition: 0.3s; }
+        .marked { background: var(--win) !important; color: white !important; transform: scale(0.95); box-shadow: 0 0 10px var(--win) !important; }
+        .status-msg { color: var(--accent); font-weight: bold; margin: 15px; font-size: 18px; height: 25px; }
+        #win-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .win-content { background: #e94560; padding: 40px; border-radius: 25px; border: 5px solid white; animation: pop 0.5s ease-out; }
+        @keyframes pop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+        .btn-restart { padding: 15px 30px; border-radius: 12px; border: none; background: white; color: #e94560; font-weight: bold; font-size: 20px; cursor: pointer; margin-top: 20px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="scr1">
-        <h2 style="margin-top:20px;">Baruda Bingo</h2>
-        <p>ካርቴላ ይምረጡ</p>
-        <div class="sel-grid" id="grid">
-            <button class="btn-select" onclick="startGame(1)">1</button>
-            <button class="btn-select" onclick="startGame(2)">2</button>
-            <button class="btn-select" onclick="startGame(3)">3</button>
-            <button class="btn-select" onclick="startGame(4)">4</button>
-            <button class="btn-select" onclick="startGame(5)">5</button>
-            <button class="btn-select" onclick="startGame(6)">6</button>
-            <button class="btn-select" onclick="startGame(7)">7</button>
-            <button class="btn-select" onclick="startGame(8)">8</button>
-            <button class="btn-select" onclick="startGame(9)">9</button>
-            <button class="btn-select" onclick="startGame(10)">10</button>
-            <button class="btn-select" onclick="startGame(11)">11</button>
-            <button class="btn-select" onclick="startGame(12)">12</button>
-            <button class="btn-select" onclick="startGame(13)">13</button>
-            <button class="btn-select" onclick="startGame(14)">14</button>
-            <button class="btn-select" onclick="startGame(15)">15</button>
-            <button class="btn-select" onclick="startGame(16)">16</button>
-            <button class="btn-select" onclick="startGame(17)">17</button>
-            <button class="btn-select" onclick="startGame(18)">18</button>
-            <button class="btn-select" onclick="startGame(19)">19</button>
-            <button class="btn-select" onclick="startGame(20)">20</button>
-            <button class="btn-select" onclick="startGame(21)">21</button>
-            <button class="btn-select" onclick="startGame(22)">22</button>
-            <button class="btn-select" onclick="startGame(23)">23</button>
-            <button class="btn-select" onclick="startGame(24)">24</button>
-            <button class="btn-select" onclick="startGame(25)">25</button>
-        </div>
+    <div class="stats-bar">
+        <div>Players <b id="p-count">400</b></div>
+        <div>Bet <b id="b-amount">10</b></div>
+        <div>Derash <b id="d-prize">3200</b></div>
     </div>
 
-    <div id="scr2" class="hidden">
-        <div class="header-info">
-            <div>Players <b>400</b></div>
-            <div>Bet <b>10</b></div>
-            <div>Derash <b>3200</b></div>
-        </div>
-        <div class="circle"><div class="called-num" id="big-n">-</div></div>
-        <div id="msg" style="color:#f1c40f; margin:10px;">በመዘጋጀት ላይ...</div>
-        <table class="bingo-table">
-            <thead><tr style="color:white;"><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
+    <div id="game-view">
+        <div class="main-display"><div class="current-ball" id="ball-display">-</div></div>
+        <div class="status-msg" id="game-status">በመዘጋጀት ላይ...</div>
+        
+        <table class="bingo-grid">
+            <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
             <tbody id="card-body"></tbody>
         </table>
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-        let cardData = []; let called = [];
+    <div id="win-modal">
+        <div class="win-content">
+            <h1 style="font-size: 50px; margin: 0;">BINGO! 🎉</h1>
+            <p style="font-size: 20px;">እንኳን ደስ አለህ አሸንፈሃል!</p>
+            <button class="btn-restart" onclick="location.reload()">አዲስ ጨዋታ</button>
+        </div>
+    </div>
 
-        function startGame(id) {
-            document.getElementById('scr1').classList.add('hidden');
-            document.getElementById('scr2').classList.remove('hidden');
-            
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let card = [];
+        let calledNumbers = [];
+        let isGameOver = false;
+
+        function createCard() {
             const body = document.getElementById('card-body');
             body.innerHTML = "";
-            cardData = [];
             let ranges = [,,,,];
-
-            for(let r=0; r<5; r++) {
+            
+            // Generate professional bingo card logic
+            for (let r = 0; r < 5; r++) {
                 let tr = document.createElement('tr');
-                let row = [];
-                for(let c=0; c<5; c++) {
+                card[r] = [];
+                for (let c = 0; c < 5; c++) {
                     let td = document.createElement('td');
-                    if(r===2 && c===2) {
-                        td.innerText = "FREE"; td.className = "marked";
-                        row.push({v:"FREE", m:true});
+                    if (r === 2 && c === 2) {
+                        td.innerText = "FREE";
+                        td.classList.add('marked');
+                        card[r][c] = { v: "FREE", m: true };
                     } else {
-                        let v;
-                        do { v = Math.floor(Math.random()*(ranges[c]-ranges[c]+1))+ranges[c]; }
-                        while(row.some(x => x.v === v) || cardData.some(pr => pr[c].v === v));
-                        td.innerText = v; td.id = "r"+r+"c"+c;
-                        row.push({v:v, m:false});
+                        let val;
+                        do {
+                            val = Math.floor(Math.random() * (ranges[c] - ranges[c] + 1)) + ranges[c];
+                        } while (card.some(row => row[c] && row[c].v === val));
+                        
+                        td.innerText = val;
+                        td.id = `cell-${r}-${c}`;
+                        card[r][c] = { v: val, m: false };
                     }
                     tr.appendChild(td);
                 }
-                cardData.push(row);
                 body.appendChild(tr);
             }
-            setTimeout(() => { document.getElementById('msg').innerText = "ጨዋታው ተጀምሯል!"; setInterval(draw, 4000); }, 2000);
+            startCountdown();
         }
 
-        function draw() {
-            let n; do { n = Math.floor(Math.random()*75)+1; } while(called.includes(n));
-            called.push(n);
-            let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
-            document.getElementById('big-n').innerText = L + "-" + n;
+        function startCountdown() {
+            let sec = 5;
+            const status = document.getElementById('game-status');
+            const timer = setInterval(() => {
+                status.innerText = `ጨዋታው በ ${sec} ሰከንድ ይጀምራል...`;
+                if (sec-- <= 0) {
+                    clearInterval(timer);
+                    status.innerText = "ጨዋታው ተጀምሯል!";
+                    setInterval(drawBall, 4000);
+                }
+            }, 1000);
+        }
 
-            for(let r=0; r<5; r++) {
-                for(let c=0; c<5; c++) {
-                    if(cardData[r][r] && cardData[r][c].v === n) {
-                        cardData[r][c].m = true;
-                        let el = document.getElementById("r"+r+"c"+c);
-                        if(el) el.classList.add('marked');
+        function drawBall() {
+            if (isGameOver || calledNumbers.length >= 75) return;
+            
+            let ball;
+            do { ball = Math.floor(Math.random() * 75) + 1; } while (calledNumbers.includes(ball));
+            calledNumbers.push(ball);
+
+            let label = ball <= 15 ? "B" : ball <= 30 ? "I" : ball <= 45 ? "N" : ball <= 60 ? "G" : "O";
+            document.getElementById('ball-display').innerText = `${label}-${ball}`;
+
+            // Check card for matches
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) {
+                    if (card[r][c].v === ball) {
+                        card[r][c].m = true;
+                        document.getElementById(`cell-${r}-${c}`).classList.add('marked');
+                        checkWin();
                     }
                 }
             }
         }
+
+        function checkWin() {
+            // Horizontal & Vertical
+            for (let i = 0; i < 5; i++) {
+                if (card[i].every(cell => cell.m) || card.every(row => row[i].m)) return announceWin();
+            }
+            // Diagonals
+            if (.every(i => card[i][i].m) ||.every(i => card[i][4-i].m)) return announceWin();
+        }
+
+        function announceWin() {
+            isGameOver = true;
+            document.getElementById('win-modal').style.display = 'flex';
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        window.onload = createCard;
     </script>
 </body>
 </html>
