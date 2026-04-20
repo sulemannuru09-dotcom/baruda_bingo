@@ -3,33 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo V3</title>
+    <title>Baruda Bingo Final</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: sans-serif; background: #12182b; color: white; text-align: center; margin: 0; padding: 0; }
-        .circle { width: 90px; height: 90px; border: 5px solid #4ee44e; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; color: #4ee44e; }
+        .hidden { display: none !important; }
+        .circle { width: 90px; height: 90px; border: 5px solid #4ee44e; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; color: #4ee44e; background: rgba(78, 228, 78, 0.1); }
         .bingo-table { width: 95%; max-width: 360px; margin: 10px auto; border-collapse: separate; border-spacing: 3px; }
         .bingo-table th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
         .bingo-table td { background: #fff; color: #333; height: 50px; border-radius: 4px; font-size: 20px; font-weight: bold; }
         .marked { background: #4ee44e !important; color: white !important; }
         .sel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
         .btn { background: #e94560; color: white; padding: 15px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div id="selection-page">
+    <div id="selector-page">
         <h2 style="margin-top:30px;">Dawi Bingo</h2>
-        <p>እባክዎን ካርቴላ ይምረጡ</p>
-        <div class="sel-grid" id="buttons-container"></div>
+        <p>ካርቴላ ይምረጡ</p>
+        <div class="sel-grid" id="grid"></div>
     </div>
 
     <div id="game-page" class="hidden">
-        <div class="circle" id="call-box">-</div>
-        <p id="status-text" style="color:#4ee44e; font-weight:bold;">ዝግጁ...</p>
+        <div class="circle" id="num-display">-</div>
+        <p id="status" style="color:#4ee44e; font-weight:bold;">ጨዋታው ተጀምሯል...</p>
         <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="card-layout"></tbody>
+            <tbody id="card-body"></tbody>
         </table>
     </div>
 
@@ -37,25 +37,21 @@
         const tg = window.Telegram.WebApp;
         tg.ready(); tg.expand();
 
-        // 1-100 ቁጥሮችን መፍጠር
-        const container = document.getElementById('buttons-container');
+        const grid = document.getElementById('grid');
         for(let i=1; i<=100; i++) {
             let b = document.createElement('button');
-            b.className = 'btn';
-            b.innerText = i;
+            b.className = 'btn'; b.innerText = i;
             b.onclick = () => {
-                document.getElementById('selection-page').classList.add('hidden');
+                document.getElementById('selector-page').classList.add('hidden');
                 document.getElementById('game-page').classList.remove('hidden');
-                startGame();
+                startBingo();
             };
-            container.appendChild(b);
+            grid.appendChild(b);
         }
 
         let called = [];
-        let card = [];
-
-        function startGame() {
-            const layout = document.getElementById('card-layout');
+        function startBingo() {
+            const body = document.getElementById('card-body');
             let ranges = [,,,,];
             let cols = ranges.map(r => {
                 let n = [];
@@ -68,35 +64,33 @@
 
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr');
-                card[r] = [];
                 for(let c=0; c<5; c++) {
                     let td = document.createElement('td');
                     let val = cols[c][r];
                     if(r===2 && c===2) {
                         td.innerText = "FREE"; td.className = "marked";
-                        card[r][c] = "FREE";
                     } else {
-                        td.innerText = val; td.id = "num-"+val;
-                        card[r][c] = val;
+                        td.innerText = val; td.id = "n-"+val;
                     }
                     tr.appendChild(td);
                 }
-                layout.appendChild(tr);
+                body.appendChild(tr);
             }
-            setInterval(drawNum, 4000);
+            // ቁጥሮቹን መጥራት እንዲጀምር
+            setInterval(draw, 4000);
         }
 
-        function drawNum() {
+        function draw() {
             if(called.length >= 75) return;
             let n;
             do { n = Math.floor(Math.random()*75)+1; } while(called.includes(n));
             called.push(n);
 
             let L = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
-            document.getElementById('call-box').innerText = L + "-" + n;
-            document.getElementById('status-text').innerText = L + " " + n + " ተጠርቷል!";
+            document.getElementById('num-display').innerText = L + "-" + n;
+            document.getElementById('status').innerText = L + " " + n + " ተጠርቷል!";
 
-            let el = document.getElementById("num-"+n);
+            let el = document.getElementById("n-"+n);
             if(el) el.classList.add('marked');
         }
     </script>
