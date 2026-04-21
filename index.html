@@ -1,83 +1,77 @@
 <!DOCTYPE html>
-<html lang="am">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo 200</title>
     <style>
         body { background: #161e30; color: white; font-family: sans-serif; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 10px; max-width: 400px; margin: 0 auto; max-height: 400px; overflow-y: auto; border: 2px solid #4ee44e; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; border: 2px solid #4ee44e; border-radius: 10px; max-height: 450px; overflow-y: auto; margin: 10px; }
         .n-btn { background: #e94560; color: white; border: none; padding: 15px 0; border-radius: 5px; font-weight: bold; font-size: 18px; }
         table { width: 100%; max-width: 350px; margin: 20px auto; background: white; color: black; border-collapse: collapse; }
-        td, th { border: 2px solid #333; height: 50px; font-size: 22px; width: 20%; }
+        td, th { border: 2px solid #333; height: 55px; font-size: 24px; text-align: center; }
         th { background: #e94560; color: white; }
-        .free { background: #4ee44e; color: white; font-size: 14px; }
-        .back { background: #ff4d4d; color: white; border: none; padding: 15px 40px; border-radius: 8px; margin-top: 20px; font-weight: bold; }
+        .back-btn { background: #ff4d4d; color: white; border: none; padding: 15px 40px; border-radius: 8px; margin-top: 20px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="p1">
         <h2>Baruda Bingo</h2>
-        <p>ካርቴላ ቁጥር ይምረጡ</p>
-        <div class="grid" id="g"></div>
+        <p>ካርቴላ ቁጥር ይምረጡ (1-200)</p>
+        <div class="grid" id="container"></div>
     </div>
 
     <div id="p2" style="display:none">
-        <h2 id="title-id" style="color: #4ee44e;"></h2>
+        <h2 id="card-num" style="color: #4ee44e;"></h2>
         <table>
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="tb"></tbody>
+            <tbody id="table-body"></tbody>
         </table>
-        <button class="back" onclick="window.location.reload()">ተመለስ</button>
+        <button class="back-btn" onclick="window.location.reload()">ተመለስ</button>
     </div>
 
     <script>
-        // 1-200 ቁልፎችን መፍጠር
-        const g = document.getElementById('g');
+        const container = document.getElementById('container');
         for (let i = 1; i <= 200; i++) {
-            let b = document.createElement('button');
-            b.className = 'n-btn';
-            b.innerText = i;
-            b.onclick = function() {
-                show(i);
-            };
-            g.appendChild(b);
-        }
-
-        function show(num) {
-            document.getElementById('p1').style.display = 'none';
-            document.getElementById('p2').style.display = 'block';
-            document.getElementById('title-id').innerText = "ካርቴላ № " + num;
-            
-            const tb = document.getElementById('tb');
-            tb.innerHTML = "";
-            
-            // የቢንጎ ቁጥሮች (B:1-15, I:16-30, N:31-45, G:46-60, O:61-75)
-            let card = [[],[],[],[],[]];
-            let rgs = [,,,,];
-            
-            for(let c=0; c<5; c++) {
-                while(card[c].length < 5) {
-                    let r = Math.floor(Math.random() * (rgs[c] - rgs[c] + 1)) + rgs[c];
-                    if(!card[c].includes(r)) card[c].push(r);
-                }
-            }
-
-            for(let r=0; r<5; r++) {
-                let tr = document.createElement('tr');
+            let btn = document.createElement('button');
+            btn.className = 'n-btn';
+            btn.innerText = i;
+            btn.onclick = function() {
+                // ገጽ 1ን ደብቅ ገጽ 2ን አሳይ
+                document.getElementById('p1').style.display = 'none';
+                document.getElementById('p2').style.display = 'block';
+                document.getElementById('card-num').innerText = "ካርቴላ № " + i;
+                
+                // ካርቴላውን ስራ
+                const tbody = document.getElementById('table-body');
+                tbody.innerHTML = "";
+                
+                let ranges = [,,,,];
+                let cardData = [[],[],[],[],[]];
+                
                 for(let c=0; c<5; c++) {
-                    let td = document.createElement('td');
-                    if(r===2 && c===2) {
-                        td.innerText = "FREE";
-                        td.className = "free";
-                    } else {
-                        td.innerText = card[c][r];
+                    while(cardData[c].length < 5) {
+                        let r = Math.floor(Math.random() * (ranges[c] - ranges[c] + 1)) + ranges[c];
+                        if(!cardData[c].includes(r)) cardData[c].push(r);
                     }
-                    tr.appendChild(td);
                 }
-                tb.appendChild(tr);
-            }
+
+                for(let row=0; row<5; row++) {
+                    let tr = document.createElement('tr');
+                    for(let col=0; col<5; col++) {
+                        let td = document.createElement('td');
+                        if(row === 2 && col === 2) {
+                            td.innerText = "FREE";
+                            td.style.background = "#4ee44e";
+                        } else {
+                            td.innerText = cardData[col][row];
+                        }
+                        tr.appendChild(td);
+                    }
+                    tbody.appendChild(tr);
+                }
+            };
+            container.appendChild(btn);
         }
     </script>
 </body>
