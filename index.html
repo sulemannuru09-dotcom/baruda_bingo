@@ -1,67 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baruda Bingo - Direct</title>
     <style>
-        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 10px; max-height: 400px; overflow-y: auto; border: 2px solid #4ee44e; margin: 10px; }
-        button { background: #e94560; color: white; border: none; padding: 10px; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; background: white; color: black; margin-top: 20px; }
-        td, th { border: 1px solid #ccc; height: 50px; font-size: 20px; width: 20%; }
-        th { background: #e94560; color: white; }
+        body { background: #161e30; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .title { color: #4ee44e; font-size: 26px; font-weight: bold; margin: 15px 0; }
+        
+        /* ቁጥር መምረጫ ገጽ */
+        #selector-page { display: block; }
+        .grid { 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
+            max-width: 400px; margin: 0 auto; background: #0c121c; 
+            padding: 12px; border-radius: 12px; border: 2px solid #4ee44e;
+            max-height: 500px; overflow-y: auto;
+        }
+        .num-btn { background: #e94560; color: white; border: none; padding: 12px 0; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
+
+        /* ካርቴላ ገጽ */
+        #card-page { display: none; }
+        .bingo-table { width: 100%; max-width: 360px; margin: 20px auto; border-collapse: separate; border-spacing: 4px; }
+        .bingo-table th { background: #e94560; color: white; padding: 12px; border-radius: 4px; font-size: 20px; }
+        .bingo-table td { background: white; color: black; height: 60px; font-size: 26px; font-weight: bold; border-radius: 4px; }
+        
+        .free-slot { background: #4ee44e !important; color: white !important; font-size: 14px !important; }
+        .back-btn { background: #ff4d4d; border: none; padding: 15px 45px; border-radius: 8px; color: white; font-weight: bold; margin-top: 30px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="p1">
-        <h3>ካርቴላ ይምረጡ (1-200)</h3>
-        <div class="grid" id="g"></div>
+
+    <div id="selector-page">
+        <div class="title">Baruda Bingo</div>
+        <p>ካርቴላ ቁጥር ይምረጡ (1-200)</p>
+        <div class="grid" id="main-grid"></div>
     </div>
-    <div id="p2" style="display:none">
-        <h3 id="cid"></h3>
-        <table>
+
+    <div id="card-page">
+        <div style="color: #4ee44e; font-size: 22px; margin: 20px 0; font-weight: bold;">ካርቴላ № <span id="display-id"></span></div>
+        <table class="bingo-table">
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="tb"></tbody>
+            <tbody id="bingo-body"></tbody>
         </table>
-        <br>
-        <button onclick="location.reload()" style="background:red; padding: 15px 40px;">ተመለስ</button>
+        <button class="back-btn" onclick="location.reload()">ተመለስ</button>
     </div>
+
     <script>
-        const g = document.getElementById('g');
-        for(let i=1; i<=200; i++) {
-            let b = document.createElement('button');
-            b.innerText = i;
-            b.onclick = () => {
-                document.getElementById('p1').style.display='none';
-                document.getElementById('p2').style.display='block';
-                document.getElementById('cid').innerText = 'ካርቴላ № ' + i;
-                make();
+        // 1-200 ቁጥሮችን መፍጠር
+        const gridDiv = document.getElementById('main-grid');
+        for (let i = 1; i <= 200; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'num-btn';
+            btn.innerText = i;
+            // ቁጥሩ ሲነካ ካርቴላውን እንዲያሳይ ማዘዝ
+            btn.onclick = function() {
+                openBingoCard(i);
             };
-            g.appendChild(b);
+            gridDiv.appendChild(btn);
         }
-        function make() {
-            const tb = document.getElementById('tb');
-            tb.innerHTML = "";
-            let rgs = [,,,,];
-            let cld = [];
-            for(let i=0; i<5; i++) {
-                let col = [];
-                while(col.length<5) {
-                    let r = Math.floor(Math.random()*(rgs[i]-rgs[i]+1))+rgs[i];
-                    if(!col.includes(r)) col.push(r);
+
+        function openBingoCard(cardNumber) {
+            // መምረጫውን ደብቅ፣ ካርቴላውን አሳይ
+            document.getElementById('selector-page').style.display = 'none';
+            document.getElementById('card-page').style.display = 'block';
+            document.getElementById('display-id').innerText = cardNumber;
+            
+            const tbody = document.getElementById('bingo-body');
+            tbody.innerHTML = "";
+            
+            // የካርቴላ ቁጥሮችን ማዘጋጀት
+            let columns = [[],[],[],[],[]];
+            let ranges = [,,,,];
+            
+            for(let c=0; c<5; c++) {
+                while(columns[c].length < 5) {
+                    let r = Math.floor(Math.random() * (ranges[c] - ranges[c] + 1)) + ranges[c];
+                    if(!columns[c].includes(r)) columns[c].push(r);
                 }
-                cld.push(col);
             }
+
+            // ሰንጠረዡን መገንባት
             for(let r=0; r<5; r++) {
                 let tr = document.createElement('tr');
                 for(let c=0; c<5; c++) {
                     let td = document.createElement('td');
-                    td.innerText = (r==2 && c==2) ? "FREE" : cld[c][r];
-                    if(r==2 && c==2) td.style.background="#4ee44e";
+                    if(r===2 && c===2) {
+                        td.innerText = "FREE";
+                        td.className = "free-slot";
+                    } else {
+                        td.innerText = columns[c][r];
+                    }
                     tr.appendChild(td);
                 }
-                tb.appendChild(tr);
+                tbody.appendChild(tr);
             }
         }
     </script>
