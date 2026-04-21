@@ -8,14 +8,14 @@
         body { background-color: #ffffff; color: #333; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .header { background: #f8f9fa; padding: 15px; border-bottom: 2px solid #28a745; margin-bottom: 15px; }
         
-        /* ቁጥር መምረጫ */
+        /* ቁጥር መምረጫ ገጽ */
         #page1 { display: block; }
         .grid { 
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
             max-width: 450px; margin: 0 auto; padding: 10px;
-            max-height: 65vh; overflow-y: auto; border: 1px solid #ddd; border-radius: 10px;
+            max-height: 60vh; overflow-y: auto; border: 1px solid #ddd; border-radius: 10px;
         }
-        .n-btn { background-color: #28a745; color: white; border: none; padding: 15px 0; border-radius: 5px; font-weight: bold; font-size: 16px; -webkit-tap-highlight-color: transparent; }
+        .n-btn { background-color: #28a745; color: white; border: none; padding: 15px 0; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer; }
 
         /* ካርቴላ ገጽ */
         #page2 { display: none; }
@@ -47,16 +47,21 @@
     </div>
 
     <script>
-        // ቁልፎቹን መፍጠር
+        // 1-200 ቁልፎችን መፍጠር
         const container = document.getElementById('main-grid');
-        let htmlContent = "";
         for (let i = 1; i <= 200; i++) {
-            // እያንዳንዱ ቁልፍ ሲነካ ቀጥታ openCard function እንዲጠራ ተደርጓል
-            htmlContent += `<button class="n-btn" onclick="openCard(${i})">${i}</button>`;
+            const btn = document.createElement('button');
+            btn.className = 'n-btn';
+            btn.innerText = i;
+            // እያንዳንዱ ቁልፍ ሲነካ openCard እንዲሰራ ታዟል
+            btn.onclick = function() {
+                openCard(i);
+            };
+            container.appendChild(btn);
         }
-        container.innerHTML = htmlContent;
 
         function openCard(n) {
+            // ገጾቹን መለዋወጥ
             document.getElementById('page1').style.display = 'none';
             document.getElementById('page2').style.display = 'block';
             document.getElementById('card-label').innerText = "ካርቴላ № " + n;
@@ -75,7 +80,7 @@
                 }
             }
 
-            // ሰንጠረዡን መገንባት
+            // ሰንጠረዡን መሥራት
             for(let row=0; row<5; row++) {
                 let tr = document.createElement('tr');
                 for(let col=0; col<5; col++) {
