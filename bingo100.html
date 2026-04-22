@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda 100</title>
     <style>
-        body { background: #16213e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 400px; margin: 15px auto; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; max-height: 380px; overflow-y: auto; }
+        body { background: #1a1a2e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 400px; margin: 15px auto; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; max-height: 350px; overflow-y: auto; }
         .btn { background: #28a745; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; font-size: 16px; }
         .btn:active { background: #dc3545; }
-        
-        #card-view { display: none; margin-top: 20px; background: white; color: black; border-radius: 12px; padding: 10px; }
+        #card-view { display: none; margin: 20px auto; background: white; color: black; border-radius: 12px; padding: 10px; max-width: 380px; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #dc3545; color: white; padding: 8px; }
         td { height: 50px; font-size: 22px; font-weight: bold; border: 1px solid #ddd; }
@@ -18,18 +16,19 @@
     </style>
 </head>
 <body>
-    <h3>Baruda Bingo 1-100</h3>
-    <div class="grid" id="g"></div>
-
+    <h3>Baruda 100</h3>
+    <div id="selection-page">
+        <p>ካርቴላ ይምረጡ (1-100)</p>
+        <div class="grid" id="g"></div>
+    </div>
     <div id="card-view">
         <h3 id="t" style="color: #dc3545;"></h3>
         <table>
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
             <tbody id="tb"></tbody>
         </table>
-        <button onclick="location.reload()" style="margin-top:15px; padding:10px 30px;">ተመለስ</button>
+        <button onclick="location.reload()" style="margin-top:15px; padding:10px 30px; background:#333; color:white; border:none; border-radius:5px;">ተመለስ</button>
     </div>
-
     <script>
         const g = document.getElementById('g');
         for (let i = 1; i <= 100; i++) {
@@ -39,9 +38,8 @@
             b.onclick = function() { showBingo(i); };
             g.appendChild(b);
         }
-
         function showBingo(n) {
-            document.getElementById('g').style.display = 'none';
+            document.getElementById('selection-page').style.display = 'none';
             document.getElementById('card-view').style.display = 'block';
             document.getElementById('t').innerText = "ካርቴላ № " + n;
             const tb = document.getElementById('tb');
