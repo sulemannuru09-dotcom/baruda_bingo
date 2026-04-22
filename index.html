@@ -5,34 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Baruda Bingo Bot</title>
     <style>
-        /* ከፎቶው ጋር ተመሳሳይ የሆነ ጥቁር ሰማያዊ ዳራ */
-        body { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
+        body { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; min-height: 100vh; }
         
-        .header-box { display: flex; justify-content: space-between; padding: 10px; margin-bottom: 10px; }
-        .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px; }
-        .stat-item { background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; font-size: 12px; }
+        .header-box { display: flex; justify-content: space-between; padding: 10px; }
+        .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0; }
+        .stat-item { background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; font-size: 11px; border: 1px solid rgba(255,255,255,0.05); }
 
-        /* 1-200 ቁጥር መምረጫ ግሪድ */
+        /* ቁጥር መምረጫ */
         .grid { 
-            display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; 
-            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;
-            max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.2);
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; 
+            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px;
+            max-height: 380px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
         }
-        .n-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .n-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 0; border-radius: 5px; font-weight: bold; font-size: 13px; cursor: pointer; }
         
         /* የተነካ ቁጥር ቀይ እንዲሆን */
-        .n-btn.selected { background: #e94560 !important; border-color: #ff4d4d; }
+        .n-btn.active-red { background: #e94560 !important; border-color: #ff4d4d !important; box-shadow: 0 0 10px rgba(233, 69, 96, 0.5); }
 
-        /* ካርቴላው ከታች እንዲመጣ */
-        #card-section { display: none; margin-top: 20px; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* ካርቴላው የሚመጣበት ቦታ */
+        #card-display { display: none; margin: 20px auto 100px auto; width: 95%; max-width: 400px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 4px; background: #fff; padding: 8px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        th { background: #e94560; color: white; padding: 12px; font-size: 18px; border-radius: 5px; }
+        td { background: #f8f9fa; color: #1a1a2e; height: 55px; font-size: 24px; font-weight: bold; border-radius: 5px; border: 1px solid #ddd; width: 20%; }
+        .free-cell { background: #28a745 !important; color: white !important; font-size: 12px !important; }
 
-        table { width: 100%; max-width: 380px; margin: 0 auto; border-collapse: separate; border-spacing: 3px; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 5px; }
-        th { background: #e94560; color: white; padding: 10px; border-radius: 4px; }
-        td { background: white; color: #333; height: 50px; font-size: 22px; font-weight: bold; border-radius: 4px; width: 20%; }
-        .free { background: #4ee44e !important; color: white !important; font-size: 12px !important; }
-
-        .footer-menu { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a2e; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); }
+        .footer { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a2e; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; }
     </style>
 </head>
 <body>
@@ -48,18 +46,19 @@
         <div class="stat-item">Stake<br><b>10</b></div>
     </div>
 
-    <p>ካርቴላ ይምረጡ (1-200)</p>
-    <div class="grid" id="main-grid"></div>
+    <h4 style="margin: 10px 0; color: #4ee44e;">ካርቴላ ይምረጡ (1-200)</h4>
+    
+    <div class="grid" id="numberGrid"></div>
 
-    <div id="card-section">
-        <h3 id="card-title" style="color: #4ee44e;"></h3>
+    <div id="card-display">
+        <h3 id="selected-id" style="color: #4ee44e; margin-bottom: 10px;"></h3>
         <table>
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="card-body"></tbody>
+            <tbody id="bingoBody"></tbody>
         </table>
-        <br><br><br> </div>
+    </div>
 
-    <div class="footer-menu">
+    <div class="footer">
         <div>🎮<br>Game</div>
         <div>🕒<br>History</div>
         <div>👛<br>Wallet</div>
@@ -67,37 +66,36 @@
     </div>
 
     <script>
-        const grid = document.getElementById('main-grid');
-        let lastSelected = null;
+        const grid = document.getElementById('numberGrid');
+        let currentActive = null;
 
         for (let i = 1; i <= 200; i++) {
             const btn = document.createElement('button');
             btn.className = 'n-btn';
             btn.innerText = i;
             btn.onclick = function() {
-                // የቀድሞውን ቀይ ከለር ማጥፋት
-                if(lastSelected) lastSelected.classList.remove('selected');
-                // አዲሱን ቀይ ማድረግ
-                btn.classList.add('selected');
-                lastSelected = btn;
-                
-                showBingoCard(i);
+                if(currentActive) currentActive.classList.remove('active-red');
+                btn.classList.add('active-red');
+                currentActive = btn;
+                createBingo(i);
             };
             grid.appendChild(btn);
         }
 
-        function showBingoCard(n) {
-            document.getElementById('card-section').style.display = 'block';
-            document.getElementById('card-title').innerText = "የተመረጠ ካርቴላ № " + n;
+        function createBingo(num) {
+            const display = document.getElementById('card-display');
+            const tbody = document.getElementById('bingoBody');
+            document.getElementById('selected-id').innerText = "የተመረጠው ካርቴላ № " + num;
             
-            const tbody = document.getElementById('card-body');
+            display.style.display = 'block';
             tbody.innerHTML = "";
+            
             let cols = [[],[],[],[],[]];
-            let rgs = [,,,,];
+            let ranges = [,,,,];
             
             for(let i=0; i<5; i++){
                 while(cols[i].length < 5){
-                    let r = Math.floor(Math.random()*(rgs[i]-rgs[i]+1))+rgs[i];
+                    let r = Math.floor(Math.random()*(ranges[i]-ranges[i]+1))+ranges[i];
                     if(!cols[i].includes(r)) cols[i].push(r);
                 }
             }
@@ -108,7 +106,7 @@
                     let td = document.createElement('td');
                     if(r===2 && c===2){
                         td.innerText = "FREE";
-                        td.className = "free";
+                        td.className = "free-cell";
                     } else {
                         td.innerText = cols[c][r];
                     }
@@ -116,8 +114,11 @@
                 }
                 tbody.appendChild(tr);
             }
-            // ካርቴላው ሲመጣ በራሱ ወደ ታች ወርዶ እንዲያሳይ
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+            // ቁጥሩ ሲነካ በራሱ ወደ ታች ካርቴላው ጋር እንዲወርድ ማዘዝ
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
     </script>
 </body>
