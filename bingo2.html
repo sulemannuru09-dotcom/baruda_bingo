@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { background: #16213e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        /* 1-200 ግሪድ */
+        .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-height: 350px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .n-btn { background: #2a2a40; color: white; border: 1px solid #444; padding: 12px 0; border-radius: 4px; font-weight: bold; }
+        .n-btn.active { background: #e94560 !important; border-color: #ff4d4d; }
+        
+        /* ካርቴላ ሰንጠረዥ */
+        #card-box { display: none; margin-top: 20px; padding-bottom: 80px; }
+        table { width: 100%; max-width: 380px; margin: 0 auto; background: white; border-collapse: separate; border-spacing: 2px; border-radius: 8px; overflow: hidden; }
+        th { background: #e94560; color: white; padding: 10px; }
+        td { background: #eee; color: #000; height: 50px; font-size: 22px; font-weight: bold; width: 20%; }
+        .free { background: #28a745 !important; color: white !important; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h3>Baruda Bingo</h3>
+    <div class="grid" id="g"></div>
+    
+    <div id="card-box">
+        <h3 id="txt" style="color:#4ee44e"></h3>
+        <table>
+            <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
+            <tbody id="tb"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const g = document.getElementById('g');
+        let last = null;
+
+        for (let i = 1; i <= 200; i++) {
+            let b = document.createElement('button');
+            b.className = 'n-btn';
+            b.innerText = i;
+            b.onclick = function() {
+                if(last) last.classList.remove('active');
+                b.classList.add('active');
+                last = b;
+                showCard(i);
+            };
+            g.appendChild(b);
+        }
+
+        function showCard(n) {
+            document.getElementById('card-box').style.display = 'block';
+            document.getElementById('txt').innerText = "ካርቴላ № " + n;
+            const tb = document.getElementById('tb');
+            tb.innerHTML = "";
+            let cols = [[],[],[],[],[]];
+            let rgs = [,,,,];
+            for(let i=0; i<5; i++){
+                while(cols[i].length<5){
+                    let r = Math.floor(Math.random()*(rgs[i]-rgs[i]+1))+rgs[i];
+                    if(!cols[i].includes(r)) cols[i].push(r);
+                }
+            }
+            for(let r=0; r<5; r++){
+                let tr = document.createElement('tr');
+                for(let c=0; c<5; c++){
+                    let td = document.createElement('td');
+                    if(r==2 && c==2) { td.innerText="FREE"; td.className="free"; }
+                    else { td.innerText = cols[c][r]; }
+                    tr.appendChild(td);
+                }
+                tb.appendChild(tr);
+            }
+            // ወደ ካርቴላው ዝቅ እንዲል
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
