@@ -3,122 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baruda Bingo Bot</title>
+    <title>Baruda 100</title>
     <style>
-        body { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; min-height: 100vh; }
+        body { background: #16213e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 400px; margin: 15px auto; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; max-height: 380px; overflow-y: auto; }
+        .btn { background: #28a745; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; font-size: 16px; }
+        .btn:active { background: #dc3545; }
         
-        .header-box { display: flex; justify-content: space-between; padding: 10px; }
-        .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0; }
-        .stat-item { background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; font-size: 11px; border: 1px solid rgba(255,255,255,0.05); }
-
-        /* ቁጥር መምረጫ */
-        .grid { 
-            display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; 
-            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px;
-            max-height: 380px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-        }
-        .n-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 0; border-radius: 5px; font-weight: bold; font-size: 13px; cursor: pointer; }
-        
-        /* የተነካ ቁጥር ቀይ እንዲሆን */
-        .n-btn.active-red { background: #e94560 !important; border-color: #ff4d4d !important; box-shadow: 0 0 10px rgba(233, 69, 96, 0.5); }
-
-        /* ካርቴላው የሚመጣበት ቦታ */
-        #card-display { display: none; margin: 20px auto 100px auto; width: 95%; max-width: 400px; }
-        table { width: 100%; border-collapse: separate; border-spacing: 4px; background: #fff; padding: 8px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-        th { background: #e94560; color: white; padding: 12px; font-size: 18px; border-radius: 5px; }
-        td { background: #f8f9fa; color: #1a1a2e; height: 55px; font-size: 24px; font-weight: bold; border-radius: 5px; border: 1px solid #ddd; width: 20%; }
-        .free-cell { background: #28a745 !important; color: white !important; font-size: 12px !important; }
-
-        .footer { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a2e; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; }
+        #card-view { display: none; margin-top: 20px; background: white; color: black; border-radius: 12px; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #dc3545; color: white; padding: 8px; }
+        td { height: 50px; font-size: 22px; font-weight: bold; border: 1px solid #ddd; }
+        .free { background: #28a745 !important; color: white; font-size: 12px; }
     </style>
 </head>
 <body>
+    <h3>Baruda Bingo 1-100</h3>
+    <div class="grid" id="g"></div>
 
-    <div class="header-box">
-        <button style="background:none; border:1px solid #fff; color:#fff; border-radius:5px; padding:5px 15px;">Back</button>
-        <button onclick="location.reload()" style="background:none; border:1px solid #fff; color:#fff; border-radius:5px; padding:5px 15px;">Refresh</button>
-    </div>
-
-    <div class="stat-bar">
-        <div class="stat-item">Main Wallet<br><b>0</b></div>
-        <div class="stat-item">Play Wallet<br><b>0</b></div>
-        <div class="stat-item">Stake<br><b>10</b></div>
-    </div>
-
-    <h4 style="margin: 10px 0; color: #4ee44e;">ካርቴላ ይምረጡ (1-200)</h4>
-    
-    <div class="grid" id="numberGrid"></div>
-
-    <div id="card-display">
-        <h3 id="selected-id" style="color: #4ee44e; margin-bottom: 10px;"></h3>
+    <div id="card-view">
+        <h3 id="t" style="color: #dc3545;"></h3>
         <table>
             <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
-            <tbody id="bingoBody"></tbody>
+            <tbody id="tb"></tbody>
         </table>
-    </div>
-
-    <div class="footer">
-        <div>🎮<br>Game</div>
-        <div>🕒<br>History</div>
-        <div>👛<br>Wallet</div>
-        <div>👤<br>Profile</div>
+        <button onclick="location.reload()" style="margin-top:15px; padding:10px 30px;">ተመለስ</button>
     </div>
 
     <script>
-        const grid = document.getElementById('numberGrid');
-        let currentActive = null;
-
-        for (let i = 1; i <= 200; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'n-btn';
-            btn.innerText = i;
-            btn.onclick = function() {
-                if(currentActive) currentActive.classList.remove('active-red');
-                btn.classList.add('active-red');
-                currentActive = btn;
-                createBingo(i);
-            };
-            grid.appendChild(btn);
+        const g = document.getElementById('g');
+        for (let i = 1; i <= 100; i++) {
+            let b = document.createElement('button');
+            b.className = 'btn';
+            b.innerText = i;
+            b.onclick = function() { showBingo(i); };
+            g.appendChild(b);
         }
 
-        function createBingo(num) {
-            const display = document.getElementById('card-display');
-            const tbody = document.getElementById('bingoBody');
-            document.getElementById('selected-id').innerText = "የተመረጠው ካርቴላ № " + num;
-            
-            display.style.display = 'block';
-            tbody.innerHTML = "";
-            
+        function showBingo(n) {
+            document.getElementById('g').style.display = 'none';
+            document.getElementById('card-view').style.display = 'block';
+            document.getElementById('t').innerText = "ካርቴላ № " + n;
+            const tb = document.getElementById('tb');
+            tb.innerHTML = "";
             let cols = [[],[],[],[],[]];
-            let ranges = [,,,,];
-            
+            let rgs = [,,,,];
             for(let i=0; i<5; i++){
                 while(cols[i].length < 5){
-                    let r = Math.floor(Math.random()*(ranges[i]-ranges[i]+1))+ranges[i];
+                    let r = Math.floor(Math.random()*(rgs[i]-rgs[i]+1))+rgs[i];
                     if(!cols[i].includes(r)) cols[i].push(r);
                 }
             }
-
             for(let r=0; r<5; r++){
                 let tr = document.createElement('tr');
                 for(let c=0; c<5; c++){
                     let td = document.createElement('td');
-                    if(r===2 && c===2){
-                        td.innerText = "FREE";
-                        td.className = "free-cell";
-                    } else {
-                        td.innerText = cols[c][r];
-                    }
+                    td.innerText = (r==2 && c==2) ? "FREE" : cols[c][r];
+                    if(r==2 && c==2) td.className = "free";
                     tr.appendChild(td);
                 }
-                tbody.appendChild(tr);
+                tb.appendChild(tr);
             }
-
-            // ቁጥሩ ሲነካ በራሱ ወደ ታች ካርቴላው ጋር እንዲወርድ ማዘዝ
-            setTimeout(() => {
-                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
         }
     </script>
 </body>
