@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baruda Bingo 100</title>
+    <style>
+        body { background: #1a1a2e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .header { margin-bottom: 15px; }
+        
+        /* 1-100 ቁጥሮች መደርደሪያ */
+        .grid { 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; 
+            max-width: 400px; margin: 0 auto; padding: 10px;
+            background: rgba(255,255,255,0.05); border-radius: 10px;
+            max-height: 400px; overflow-y: auto; border: 1px solid #333;
+        }
+        .num-btn { background: #28a745; color: white; border: none; padding: 15px 0; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .num-btn:active { background: #dc3545 !important; }
+
+        /* የካርቴላ ገጽ */
+        #card-display { display: none; margin: 20px auto; padding: 10px; background: white; border-radius: 12px; max-width: 380px; color: black; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #dc3545; color: white; padding: 10px; border: 1px solid #ddd; }
+        td { height: 50px; font-size: 22px; font-weight: bold; border: 1px solid #ddd; text-align: center; width: 20%; }
+        .free-slot { background: #28a745 !important; color: white !important; font-size: 12px; }
+        
+        .back-btn { background: #333; color: white; border: none; padding: 12px 30px; border-radius: 6px; margin-top: 15px; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="selection-page">
+        <div class="header">
+            <h2 style="color: #28a745;">Baruda Bingo</h2>
+            <p>ካርቴላ ይምረጡ (1-100)</p>
+        </div>
+        <div class="grid" id="mainGrid"></div>
+    </div>
+
+    <div id="card-display">
+        <h3 id="cardTitle" style="margin: 5px; color: #dc3545;"></h3>
+        <table>
+            <thead><tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr></thead>
+            <tbody id="bingoBody"></tbody>
+        </table>
+        <button class="back-btn" onclick="closeCard()">ተመለስ</button>
+    </div>
+
+    <script>
+        const grid = document.getElementById('mainGrid');
+
+        // 1-100 ቁጥሮችን መፍጠር
+        for (let i = 1; i <= 100; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'num-btn';
+            btn.innerText = i;
+            btn.onclick = function() {
+                // ቁጥሩ ሲነካ ቀጥታ ካርቴላውን እንዲሰራ ማዘዝ
+                generateBingo(i);
+            };
+            grid.appendChild(btn);
+        }
+
+        function generateBingo(n) {
+            document.getElementById('selection-page').style.display = 'none';
+            document.getElementById('card-display').style.display = 'block';
+            document.getElementById('cardTitle').innerText = "ካርቴላ № " + n;
+            
+            const tbody = document.getElementById('bingoBody');
+            tbody.innerHTML = "";
+            
+            let cardNumbers = [[],[],[],[],[]];
+            let ranges = [,,,,];
+            
+            for(let i=0; i<5; i++){
+                while(cardNumbers[i].length < 5){
+                    let randomVal = Math.floor(Math.random() * (ranges[i] - ranges[i] + 1)) + ranges[i];
+                    if(!cardNumbers[i].includes(randomVal)) cardNumbers[i].push(randomVal);
+                }
+            }
+
+            for(let row=0; row<5; row++){
+                let tr = document.createElement('tr');
+                for(let col=0; col<5; col++){
+                    let td = document.createElement('td');
+                    if(row === 2 && col === 2){
+                        td.innerText = "FREE";
+                        td.className = "free-slot";
+                    } else {
+                        td.innerText = cardNumbers[col][row];
+                    }
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+        }
+
+        function closeCard() {
+            document.getElementById('card-display').style.display = 'none';
+            document.getElementById('selection-page').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
